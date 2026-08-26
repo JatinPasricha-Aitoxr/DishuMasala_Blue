@@ -10,11 +10,15 @@
  * one-off, long-lived Node processes — so a plain `pg` connection (wire-compatible with Neon and
  * with any other Postgres, local Docker included) is the right tool here. This file still lives
  * under lib/db/ so the "no drizzle-orm import outside lib/db/" ESLint rule holds without an
- * exception: scripts import the constructed `db` from here, never drizzle-orm directly.
+ * exception: scripts import the constructed `db` from here, never drizzle-orm directly. The `eq`
+ * re-export below exists for the same reason — a script that needs a `where` clause imports it
+ * from here instead of reaching for `drizzle-orm` itself.
  */
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "./schema";
+
+export { eq } from "drizzle-orm";
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
