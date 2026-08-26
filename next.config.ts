@@ -30,6 +30,10 @@ const nextConfig: NextConfig = {
   // Keep the app deployable on Vercel while staying runnable under PM2 + Nginx on a VPS —
   // no Vercel-only API is used anywhere in this codebase (CLAUDE.md §2, §10).
   output: "standalone",
+  // Next.js otherwise auto-appends a "read node_modules/next/dist/docs/" block to CLAUDE.md on
+  // every `next dev`/build — CLAUDE.md is this project's own binding constitution, authored and
+  // version-controlled deliberately, not a place for a tool to write into.
+  agentRules: false,
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: r2RemotePattern(),
