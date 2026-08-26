@@ -17,6 +17,21 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL is not set. Copy .env.example to .env and fill it in.");
 }
 
+// Local development against a plain (non-Neon) Postgres — e.g. a Docker Postgres used before a
+// real Neon project exists — needs Neon's local wsproxy sidecar
+// (`ghcr.io/neondatabase/wsproxy`) in front of it, since the serverless driver otherwise only
+// speaks to Neon's own proxy (see Neon's docs: "Connect with the serverless driver from a local
+// environment"). This activates ONLY when DATABASE_URL points at localhost/127.0.0.1; any real
+// Neon host (production, or a Neon dev branch) is untouched.
+const dbHost = new URL(databaseUrl.replace(/^postgres(ql)?:/, "http:")).hostname;
+if (dbHost === "localhost" || dbHost === "127.0.0.1") {
+  const proxyPort = process.env.NEON_LOCAL_WS_PROXY_PORT ?? "4444";
+  neonConfig.wsProxy = (host) => `${host}:${proxyPort}/v1`;
+  neonConfig.useSecureWebSocket = false;
+  neonConfig.pipelineTLS = false;
+  neonConfig.pipelineConnect = false;
+}
+
 const pool = new Pool({ connectionString: databaseUrl });
 
 export const db = drizzle(pool, { schema });
