@@ -33,7 +33,7 @@ export function PriceBlock({ mrpPaise, pricePaise, size = "md", showTaxNote = tr
         </span>
         {hasSaving && (
           <>
-            <span className="tabular-nums text-sm text-ink-3 line-through decoration-1">
+            <span className="tabular-nums text-sm text-ink-2 line-through decoration-1">
               {formatINR(mrpPaise)}
             </span>
             <span className="tabular-nums rounded-sm bg-leaf/10 px-1.5 py-0.5 text-xs font-semibold text-leaf">
@@ -43,7 +43,7 @@ export function PriceBlock({ mrpPaise, pricePaise, size = "md", showTaxNote = tr
         )}
       </div>
       {showTaxNote && (
-        <span className="text-xs text-ink-3">Inclusive of all taxes</span>
+        <span className="text-xs text-ink-2">Inclusive of all taxes</span>
       )}
     </div>
   );

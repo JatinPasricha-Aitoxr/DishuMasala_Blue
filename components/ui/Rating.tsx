@@ -48,7 +48,7 @@ export function Rating({ value, count, className }: RatingProps) {
         })}
       </span>
       {count != null && (
-        <span className="tabular-nums text-xs text-ink-3">({count})</span>
+        <span className="tabular-nums text-xs text-ink-2">({count})</span>
       )}
     </div>
   );
