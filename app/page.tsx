@@ -1,36 +1,64 @@
-import { formatINR } from "@/lib/money";
 import { getCollectionsWithStats } from "@/lib/db/queries/collections";
+import { getPublishedProductsByCollectionSlug } from "@/lib/db/queries/products";
+import { LemonShiftHero } from "@/components/hero/LemonShiftHero";
+import { TrustStrip } from "@/components/layout/TrustStrip";
+import { BlueTeaBand } from "@/components/sections/BlueTeaBand";
+import { RedTeaSection } from "@/components/sections/RedTeaSection";
+import { ComboValue } from "@/components/sections/ComboValue";
+import { SpicesGrid } from "@/components/sections/SpicesGrid";
+import { ClassicAssamStrip } from "@/components/sections/ClassicAssamStrip";
+import { RitualTeaser } from "@/components/sections/RitualTeaser";
+import { ReviewsEmptyState } from "@/components/sections/ReviewsEmptyState";
+import { NewsletterSection } from "@/components/sections/NewsletterSection";
 
-// Temporary proof-of-life page for Phase 0: server-renders plain text proving the DB layer works
-// end to end (collections, in priority order, with a live product count and price range each).
-// Replaced by the real homepage in Phase 2 — no design system, no components, on purpose.
-export const dynamic = "force-dynamic";
-
+/**
+ * The homepage (Phase 2 / PROMPTS.md, replacing Phase 0's plain-text DB proof page). Section order
+ * follows CLAUDE.md §7.2's priority rule ("Blue Tea first. Then Red Tea. Then everything else") and
+ * PRD.md §5.1's homepage template: hero, then the two priority-1/2 collections get the top two
+ * slots, then Combo Packs and Spices (which drive average order value — PRD §1's #2 business goal),
+ * then Classic & Assam deliberately last and visually quietest despite outranking Combos/Spices on
+ * `priority` — PRD §5.1 item 7 calls this out explicitly as a homepage-template exception, not an
+ * oversight; `/shop`'s default sort (Phase 3) uses the unmodified `priority` order everywhere else.
+ *
+ * Every product/collection value below is read from Postgres via lib/db/queries/* — nothing in this
+ * file or components/sections/* hardcodes a name, price or image URL.
+ */
 export default async function Home() {
-  const collections = await getCollectionsWithStats();
+  const [collections, blueTea, redTea, combos, spices, classicAssam] = await Promise.all([
+    getCollectionsWithStats(),
+    getPublishedProductsByCollectionSlug("blue-tea"),
+    getPublishedProductsByCollectionSlug("red-tea"),
+    getPublishedProductsByCollectionSlug("combos"),
+    getPublishedProductsByCollectionSlug("spices"),
+    getPublishedProductsByCollectionSlug("classic-teas"),
+  ]);
+
+  // The one part of CLAUDE.md §7.2 this file's fixed section order can't re-derive on its own is
+  // "Blue Tea first, then Red Tea" — verify that invariant against the live DB priority values on
+  // every render rather than silently trusting it forever (an admin edit in a later phase could
+  // break it).
+  const priorityOf = (slug: string) => collections.find((c) => c.slug === slug)?.priority;
+  const blueTeaPriority = priorityOf("blue-tea");
+  const redTeaPriority = priorityOf("red-tea");
+  if (blueTeaPriority == null || redTeaPriority == null || !(blueTeaPriority < redTeaPriority)) {
+    console.warn(
+      "app/page.tsx: collections.priority no longer puts Blue Tea before Red Tea — the homepage's " +
+        "fixed section order (CLAUDE.md §7.2) needs re-checking against the current DB values.",
+    );
+  }
 
   return (
-    <main style={{ fontFamily: "monospace", padding: "2rem", whiteSpace: "pre-wrap" }}>
-      <h1>Dishu Masala — Phase 0 DB proof page</h1>
-      <p>Collections in priority order (lower priority sorts first), each with its live product count and sale-price range, read straight from Postgres via lib/db/queries/collections.ts.</p>
-      <ol>
-        {collections.map((c) => (
-          <li key={c.id}>
-            {"priority "}{c.priority}{" — "}{c.title}{" ("}{c.slug}{") — "}
-            {c.productCount}{" product"}{c.productCount === 1 ? "" : "s"}
-            {c.minPricePaise !== null && c.maxPricePaise !== null ? (
-              <>
-                {" — "}
-                {c.minPricePaise === c.maxPricePaise
-                  ? formatINR(c.minPricePaise)
-                  : `${formatINR(c.minPricePaise)}–${formatINR(c.maxPricePaise)}`}
-              </>
-            ) : (
-              " — no priced products yet"
-            )}
-          </li>
-        ))}
-      </ol>
-    </main>
+    <>
+      <LemonShiftHero />
+      <TrustStrip />
+      <BlueTeaBand products={blueTea} />
+      <RedTeaSection products={redTea} />
+      <ComboValue combos={combos} spices={spices} />
+      <SpicesGrid products={spices} />
+      <ClassicAssamStrip products={classicAssam} />
+      <RitualTeaser />
+      <ReviewsEmptyState />
+      <NewsletterSection />
+    </>
   );
 }

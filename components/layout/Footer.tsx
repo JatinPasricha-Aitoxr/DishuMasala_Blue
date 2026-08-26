@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getCollectionsWithStats } from "@/lib/db/queries/collections";
 import { getGstin, getStoreAddress } from "@/lib/db/queries/settings";
-import { NewsletterForm } from "./NewsletterForm";
+import { NewsletterFormLazy } from "./NewsletterFormLazy";
 
 const POLICY_LINKS = [
   { href: "/privacy/", label: "Privacy Policy" },
@@ -62,7 +62,7 @@ export async function Footer() {
               </a>
             </address>
           ) : (
-            <p className="text-sm text-ink-3">Contact details unavailable.</p>
+            <p className="text-sm text-ink-2">Contact details unavailable.</p>
           )}
           <ul className="flex gap-2">
             {SOCIAL_SLOTS.map((s) => (
@@ -83,7 +83,7 @@ export async function Footer() {
         </div>
 
         <div>
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-ink-3">Shop</p>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-ink-2">Shop</p>
           <ul className="flex flex-col gap-2">
             {collections.map((c) => (
               <li key={c.slug}>
@@ -96,7 +96,7 @@ export async function Footer() {
         </div>
 
         <div>
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-ink-3">Policies</p>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-ink-2">Policies</p>
           <ul className="flex flex-col gap-2">
             {POLICY_LINKS.map((p) => (
               <li key={p.href}>
@@ -109,9 +109,9 @@ export async function Footer() {
         </div>
 
         <div className="flex flex-col gap-6">
-          <NewsletterForm />
+          <NewsletterFormLazy />
           <div>
-            <p className="mb-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-ink-3">
+            <p className="mb-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-ink-2">
               Payment options
             </p>
             <ul className="flex flex-wrap gap-1.5">
@@ -129,7 +129,7 @@ export async function Footer() {
       </div>
 
       <div className="border-t border-line">
-        <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-5 text-xs text-ink-3 sm:px-6">
+        <div className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-5 text-xs text-ink-2 sm:px-6">
           <p>
             All prices are inclusive of GST{gstin ? ` — GSTIN ${gstin}` : ""}.
           </p>
