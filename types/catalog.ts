@@ -76,3 +76,13 @@ export interface ProductWithVariants extends Product {
   variants: Variant[];
   images: ProductImage[];
 }
+
+/** A product with its variants plus its parent collection's slug/title denormalised alongside it —
+ * exactly the shape the homepage sections (components/sections/*) and ProductCard need, without any
+ * of them touching lib/db themselves. Images are omitted (always empty pre-migration today; see
+ * scripts/migrate-images.ts) rather than modelled as an empty array on every caller. */
+export interface ProductCardData extends Product {
+  variants: Variant[];
+  collectionSlug: string;
+  collectionTitle: string;
+}
