@@ -43,3 +43,49 @@ export async function getCollectionsWithStats(): Promise<CollectionSummary[]> {
     maxPricePaise: r.maxPricePaise == null ? null : paise(Number(r.maxPricePaise)),
   }));
 }
+
+/** Every collection slug — `app/collections/[slug]/page.tsx`'s `generateStaticParams` (Phase 3),
+ * so all 5 collection pages are statically known at build time without pulling the full stats
+ * query just to read `slug`. */
+export async function getAllCollectionSlugs(): Promise<string[]> {
+  const rows = await db.select({ slug: collections.slug }).from(collections);
+  return rows.map((r) => r.slug);
+}
+
+/** A single collection by slug, with the same published-product-count/price-range stats
+ * `getCollectionsWithStats` computes for the whole list — `app/collections/[slug]/page.tsx`'s
+ * `generateMetadata` and page body. Returns null for an unknown slug (a 404, not a crash). */
+export async function getCollectionBySlug(slug: string): Promise<CollectionSummary | null> {
+  const [row] = await db
+    .select({
+      id: collections.id,
+      slug: collections.slug,
+      title: collections.title,
+      tagline: collections.tagline,
+      priority: collections.priority,
+      accentToken: collections.accentToken,
+      position: collections.position,
+      seoTitle: collections.seoTitle,
+      seoDescription: collections.seoDescription,
+      productCount: sql<number>`count(distinct ${products.id})`,
+      minPricePaise: sql<number | null>`min(${variants.pricePaise})`,
+      maxPricePaise: sql<number | null>`max(${variants.pricePaise})`,
+    })
+    .from(collections)
+    .leftJoin(
+      products,
+      and(eq(products.collectionId, collections.id), eq(products.status, "published")),
+    )
+    .leftJoin(variants, eq(variants.productId, products.id))
+    .where(eq(collections.slug, slug))
+    .groupBy(collections.id)
+    .limit(1);
+
+  if (!row) return null;
+  return {
+    ...row,
+    productCount: Number(row.productCount),
+    minPricePaise: row.minPricePaise == null ? null : paise(Number(row.minPricePaise)),
+    maxPricePaise: row.maxPricePaise == null ? null : paise(Number(row.maxPricePaise)),
+  };
+}
