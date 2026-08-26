@@ -1,0 +1,170 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import { PriceBlock } from "@/components/ui/PriceBlock";
+import { Rating } from "@/components/ui/Rating";
+import { Placeholder } from "@/components/media/Placeholder";
+import { familyAccentVar, resolveFamilyAccent } from "@/lib/family-accent";
+import { cn } from "@/lib/cn";
+import type { Paise } from "@/lib/money";
+
+export interface ProductCardImage {
+  url: string;
+  alt: string;
+  width: number;
+  height: number;
+}
+
+export interface ProductCardProps {
+  slug: string;
+  name: string;
+  collectionSlug: string;
+  collectionTitle: string;
+  /** The product's own `tags` column — feeds the family-accent resolver for spice products. */
+  tags?: string[];
+  /** The product's own `option_label` ("Size" | "Combo" | "Teabags") plus the distinct variant
+   * option values (e.g. ["100g", "250g"]) — never invented, straight off the product's variants. */
+  optionLabel: string;
+  optionValues: string[];
+  mrpPaise: Paise;
+  pricePaise: Paise;
+  /** 0, 1, or 2+ images, in position order, primary first. Degrades gracefully at every count —
+   * roughly half the seeded catalogue is single-image, single-variant. */
+  images?: ProductCardImage[];
+  /** Omit entirely (not 0) when there is no review data yet — there are no reviews at launch. */
+  rating?: { value: number; count: number };
+  wishlisted?: boolean;
+  onToggleWishlist?: () => void;
+  onQuickAdd?: () => void;
+  className?: string;
+}
+
+export function ProductCard({
+  slug,
+  name,
+  collectionSlug,
+  collectionTitle,
+  tags = [],
+  optionLabel,
+  optionValues,
+  mrpPaise,
+  pricePaise,
+  images = [],
+  rating,
+  wishlisted = false,
+  onToggleWishlist,
+  onQuickAdd,
+  className,
+}: ProductCardProps) {
+  const [wishlistedState, setWishlistedState] = useState(wishlisted);
+  const accent = familyAccentVar(resolveFamilyAccent(collectionSlug, tags));
+  const [primary, secondary] = images;
+  const href = `/product/${slug}/`;
+
+  const toggleWishlist = () => {
+    setWishlistedState((v) => !v);
+    onToggleWishlist?.();
+  };
+
+  return (
+    <article
+      className={cn(
+        "group relative flex flex-col overflow-hidden rounded-lg bg-surface shadow-card",
+        "transition-[box-shadow,transform] duration-[200ms] ease-[cubic-bezier(.2,.6,.2,1)]",
+        "hover:-translate-y-0.5 hover:shadow-lift focus-within:-translate-y-0.5 focus-within:shadow-lift",
+        className,
+      )}
+    >
+      <div className="relative w-full overflow-hidden" style={{ aspectRatio: "1 / 1" }}>
+        <Link href={href} className="absolute inset-0 z-10" aria-label={name}>
+          <span className="sr-only">View {name}</span>
+        </Link>
+
+        {primary ? (
+          // eslint-disable-next-line @next/next/no-img-element -- placeholder-free real image path; next/image wiring lands with real R2 catalogue data in Phase 3.
+          <img
+            src={primary.url}
+            alt={primary.alt}
+            width={primary.width}
+            height={primary.height}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        ) : (
+          <Placeholder slot="product-packshot-generic" className="absolute inset-0 h-full w-full" />
+        )}
+
+        {secondary && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={secondary.url}
+            alt=""
+            aria-hidden="true"
+            width={secondary.width}
+            height={secondary.height}
+            className={cn(
+              "absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-200",
+              "group-hover:opacity-100 group-focus-within:opacity-100",
+            )}
+          />
+        )}
+
+        <button
+          type="button"
+          onClick={toggleWishlist}
+          aria-pressed={wishlistedState}
+          aria-label={wishlistedState ? `Remove ${name} from wishlist` : `Add ${name} to wishlist`}
+          className="absolute right-2.5 top-2.5 z-20 flex size-9 items-center justify-center rounded-full bg-surface/90 text-ink shadow-card backdrop-blur-sm"
+        >
+          <svg viewBox="0 0 20 20" className="size-4" aria-hidden="true">
+            <path
+              d="M10 17s-6.5-4.06-8.2-7.86C.6 6.6 2 3.5 5.2 3.1c1.9-.24 3.5.9 4.8 2.6 1.3-1.7 2.9-2.84 4.8-2.6 3.2.4 4.6 3.5 3.4 6.04C16.5 12.94 10 17 10 17Z"
+              fill={wishlistedState ? "var(--color-hibiscus)" : "none"}
+              stroke={wishlistedState ? "var(--color-hibiscus)" : "currentColor"}
+              strokeWidth="1.4"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-2 p-4">
+        <span className="inline-flex w-fit items-center gap-1.5 rounded-sm bg-surface-2 px-2 py-0.5 text-xs font-medium text-ink-2">
+          <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: accent }} aria-hidden="true" />
+          {collectionTitle}
+        </span>
+
+        <Link href={href} className="font-sans text-[1.05rem] font-semibold leading-snug text-ink tracking-[-0.01em] hover:underline">
+          {name}
+        </Link>
+
+        {optionValues.length > 0 && (
+          <div className="flex flex-wrap gap-1.5" aria-label={optionLabel}>
+            {optionValues.map((v) => (
+              <span
+                key={v}
+                className="rounded-sm border border-line px-2 py-0.5 text-xs font-medium text-ink-2"
+              >
+                {v}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {rating && <Rating value={rating.value} count={rating.count} />}
+
+        <div className="mt-auto pt-1">
+          <PriceBlock mrpPaise={mrpPaise} pricePaise={pricePaise} />
+        </div>
+
+        <button
+          type="button"
+          onClick={onQuickAdd}
+          className="relative z-20 mt-2 h-10 w-full rounded-md border border-ink text-sm font-semibold text-ink transition-colors duration-[180ms] hover:bg-ink hover:text-surface"
+        >
+          Quick add
+        </button>
+      </div>
+    </article>
+  );
+}
