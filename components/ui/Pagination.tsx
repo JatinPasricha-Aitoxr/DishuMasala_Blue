@@ -5,11 +5,12 @@ import { cn } from "@/lib/cn";
 export interface PaginationProps {
   page: number;
   totalPages: number;
+  /** Client-driven mode (state, no navigation) — e.g. an admin table (later phases). */
   onPageChange: (page: number) => void;
   className?: string;
 }
 
-function pageWindow(page: number, totalPages: number): (number | "ellipsis")[] {
+export function pageWindow(page: number, totalPages: number): (number | "ellipsis")[] {
   const items: (number | "ellipsis")[] = [];
   const add = (n: number) => items.push(n);
   const window = 1;
@@ -23,18 +24,25 @@ function pageWindow(page: number, totalPages: number): (number | "ellipsis")[] {
   return items;
 }
 
+export const PAGINATION_ARROW_CLASS =
+  "flex h-9 min-w-9 items-center justify-center rounded-sm px-2 text-sm text-ink-2 disabled:opacity-40 disabled:pointer-events-none hover:bg-surface-2 aria-disabled:pointer-events-none aria-disabled:opacity-40";
+export const PAGINATION_ITEM_CLASS =
+  "tabular-nums flex h-9 min-w-9 items-center justify-center rounded-sm px-2 text-sm font-medium hover:bg-surface-2";
+
 export function Pagination({ page, totalPages, onPageChange, className }: PaginationProps) {
   if (totalPages <= 1) return null;
   const items = pageWindow(page, totalPages);
+  const ARROW_CLASS = PAGINATION_ARROW_CLASS;
+  const ITEM_CLASS = PAGINATION_ITEM_CLASS;
 
   return (
     <nav aria-label="Pagination" className={cn("flex items-center gap-1", className)}>
       <button
         type="button"
-        onClick={() => onPageChange(page - 1)}
+        onClick={() => onPageChange?.(page - 1)}
         disabled={page <= 1}
         aria-label="Previous page"
-        className="flex h-9 min-w-9 items-center justify-center rounded-sm px-2 text-sm text-ink-2 disabled:opacity-40 disabled:pointer-events-none hover:bg-surface-2"
+        className={ARROW_CLASS}
       >
         Prev
       </button>
@@ -47,12 +55,9 @@ export function Pagination({ page, totalPages, onPageChange, className }: Pagina
           <button
             key={item}
             type="button"
-            onClick={() => onPageChange(item)}
+            onClick={() => onPageChange?.(item)}
             aria-current={item === page ? "page" : undefined}
-            className={cn(
-              "tabular-nums flex h-9 min-w-9 items-center justify-center rounded-sm px-2 text-sm font-medium",
-              item === page ? "bg-ink text-surface" : "text-ink-2 hover:bg-surface-2",
-            )}
+            className={cn(ITEM_CLASS, item === page ? "bg-ink text-surface" : "text-ink-2")}
           >
             {item}
           </button>
@@ -60,10 +65,10 @@ export function Pagination({ page, totalPages, onPageChange, className }: Pagina
       )}
       <button
         type="button"
-        onClick={() => onPageChange(page + 1)}
+        onClick={() => onPageChange?.(page + 1)}
         disabled={page >= totalPages}
         aria-label="Next page"
-        className="flex h-9 min-w-9 items-center justify-center rounded-sm px-2 text-sm text-ink-2 disabled:opacity-40 disabled:pointer-events-none hover:bg-surface-2"
+        className={ARROW_CLASS}
       >
         Next
       </button>
