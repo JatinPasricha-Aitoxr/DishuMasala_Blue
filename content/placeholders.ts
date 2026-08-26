@@ -33,13 +33,38 @@ export const PLACEHOLDER_MANIFEST = {
       "that exists.",
     tone: "flat",
   },
-  "hero-blue-tea": {
+  "hero-blue-tea-packshot": {
+    aspectRatio: "4 / 5",
+    standsInFor:
+      "The homepage hero's packshot: the Blue Tea pouch/jar on white, the product the whole hero " +
+      "is selling. The animated brew gradient (components/hero/LemonShiftHero.tsx) renders behind " +
+      "and around this slot as a separate CSS layer, so this placeholder itself stays flat — no " +
+      "logo, no on-image copy, no person.",
+    tone: "flat",
+  },
+  "blue-tea-band-editorial": {
     aspectRatio: "21 / 9",
     standsInFor:
-      "The homepage hero: butterfly pea tea mid-pour, caught mid colour-change from blue to " +
-      "violet as lemon hits the cup. Natural light, no logo, no on-image copy, no person named or " +
-      "identifiable.",
-    tone: "brew-cool",
+      "The homepage's full-bleed Blue Tea band: butterfly pea tea mid-pour, caught mid colour-" +
+      "change from blue to violet as lemon hits the cup. Natural light, no logo, no on-image copy, " +
+      "no person named or identifiable. (Flat tone, not the brew-cool gradient, because the band's " +
+      "own section background already carries that gradient — CLAUDE.md §5.4 caps one gradient " +
+      "surface per viewport.)",
+    tone: "flat",
+  },
+  "red-tea-lifestyle": {
+    aspectRatio: "4 / 5",
+    standsInFor:
+      "The homepage Red Tea section's supporting image: hibiscus tea mid-pour or the dried " +
+      "hibiscus/rose petals themselves, ruby-red. No logo, no on-image copy, no identifiable person.",
+    tone: "flat-warm",
+  },
+  "ritual-lemon-brew": {
+    aspectRatio: "4 / 5",
+    standsInFor:
+      "The homepage ritual/recipe teaser: a lemon wedge about to meet a cup of Blue Tea, the moment " +
+      "just before the colour shift. No logo, no on-image copy, no identifiable person.",
+    tone: "flat",
   },
   "pdp-brew-story-blue-tea": {
     aspectRatio: "4 / 3",
