@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dishu Masala Storefront
 
-## Getting Started
+Fully custom Next.js storefront + admin for Dishu Food and Beverages (dishumasala.com). See
+`CLAUDE.md` for the binding project constitution, `PRD.md` for product requirements, and
+`PROMPTS.md` for the phased build plan.
 
-First, run the development server:
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.example .env   # fill in real values — see "Environment" below
+pnpm db:generate        # generate a migration from lib/db/schema/ (already committed for Phase 0)
+pnpm db:migrate          # apply migrations to DATABASE_URL
+pnpm db:seed              # seed collections/products/variants/coupon/settings from data/catalog.json
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script | Purpose |
+|---|---|
+| `pnpm dev` / `build` / `start` | Next.js app |
+| `pnpm typecheck` | `tsc --noEmit` |
+| `pnpm lint` | ESLint, including the "no drizzle-orm outside lib/db/" rule |
+| `pnpm test` | Vitest |
+| `pnpm db:generate` | Generate a Drizzle migration from `lib/db/schema/` |
+| `pnpm db:migrate` | Apply migrations (`drizzle-kit migrate`) |
+| `pnpm db:seed` | Idempotently seed from `data/catalog.json` |
+| `pnpm db:studio` | Drizzle Studio |
+| `pnpm migrate-images` | Pull product images off the old site, generate AVIF/WebP derivatives, upload to R2 |
 
-## Learn More
+## Environment
 
-To learn more about Next.js, take a look at the following resources:
+Copy `.env.example` to `.env` and fill in every value listed there — it covers every variable
+CLAUDE.md §10 requires (`DATABASE_URL`, `AUTH_SECRET`, `AUTH_URL`, the `R2_*` set, `RESEND_API_KEY`,
+`EMAIL_FROM`, the `RAZORPAY_*` set, the `SHIPROCKET_*` set, `NEXT_PUBLIC_SITE_URL`), each with a
+comment explaining what it's for and where to get it.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**No secret may ever carry a `NEXT_PUBLIC_` prefix.** That prefix tells Next.js to inline the value
+into the client-side JS bundle — anything with it ships to every visitor's browser. The only
+`NEXT_PUBLIC_` variable in this project is `NEXT_PUBLIC_SITE_URL`, which is the site's own public
+origin, not a secret. Every phase's acceptance check greps the built `.next/static` output for
+secret values and variable names to confirm none leaked into the client bundle.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Architecture notes
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Postgres is the only source of truth.** `data/catalog.json` exists solely to seed the database.
+- Nothing outside `lib/db/` imports `drizzle-orm` (enforced by ESLint) — everything else reads via
+  `lib/db/queries/*`, writes via `lib/db/mutations/*`, and consumes the plain types in
+  `types/catalog.ts` / `types/order.ts`.
+- All money is stored and computed as integer paise via the branded `Paise` type in `lib/money.ts`
+  — never a float, never rupee arithmetic in JS.
+- Deployed on Vercel with `output: "standalone"`; no Vercel-only API is used, so the same build can
+  run under PM2 + Nginx on a VPS.
