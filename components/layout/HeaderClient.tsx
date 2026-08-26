@@ -1,0 +1,399 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerTitle, DrawerTrigger } from "@/components/ui/Drawer";
+import { GRADIENT_TILE_SLUGS, type MegaMenuColumn } from "@/lib/nav";
+import { cn } from "@/lib/cn";
+import { formatINR, type Paise } from "@/lib/money";
+
+const ANNOUNCEMENT_DISMISSED_KEY = "dm-announcement-dismissed";
+
+export interface HeaderClientProps {
+  columns: MegaMenuColumn[];
+  freeShippingThresholdPaise: Paise;
+}
+
+function CartIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="size-5" aria-hidden="true">
+      <path
+        d="M3 4h2l2.2 11.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L20.5 8H6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="9.5" cy="20" r="1.4" fill="currentColor" />
+      <circle cx="17.5" cy="20" r="1.4" fill="currentColor" />
+    </svg>
+  );
+}
+
+function WishlistIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="size-5" aria-hidden="true">
+      <path
+        d="M10 17s-6.5-4.06-8.2-7.86C.6 6.6 2 3.5 5.2 3.1c1.9-.24 3.5.9 4.8 2.6 1.3-1.7 2.9-2.84 4.8-2.6 3.2.4 4.6 3.5 3.4 6.04C16.5 12.94 10 17 10 17Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function AccountIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="size-5" aria-hidden="true">
+      <circle cx="12" cy="8" r="3.4" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M4.5 20c1.4-3.6 4.4-5.6 7.5-5.6s6.1 2 7.5 5.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="size-5" aria-hidden="true">
+      <circle cx="9" cy="9" r="6.2" stroke="currentColor" strokeWidth="1.6" />
+      <path d="m17 17-3.4-3.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconCountButton({
+  icon,
+  label,
+  count,
+  href,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  count: number;
+  href: string;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-label={count > 0 ? `${label} (${count})` : label}
+      className="relative flex size-10 items-center justify-center rounded-sm text-ink-2 hover:bg-surface-2 hover:text-ink"
+    >
+      {icon}
+      {count > 0 && (
+        <span className="tabular-nums absolute right-0.5 top-0.5 flex size-4 items-center justify-center rounded-full bg-hibiscus text-[10px] font-semibold text-white">
+          {count}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+export function HeaderClient({ columns, freeShippingThresholdPaise }: HeaderClientProps) {
+  const [dismissed, setDismissed] = useState(false);
+  const [condensed, setCondensed] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const itemRefs = useRef<Map<string, HTMLAnchorElement>>(new Map());
+
+  useEffect(() => {
+    // Reading localStorage (an external system) can only happen after mount — the server has no
+    // localStorage, so this must run post-hydration to stay SSR-safe, which means the announcement
+    // always paints first, then updates once if it was previously dismissed. That's the exact
+    // "subscribe to an external system, call setState when it changes" case the react-hooks
+    // set-state-in-effect rule's own guidance carves out as correct; there's no cascading-render
+    // risk here (a single one-shot read, not a loop), so it's disabled for this one line rather
+    // than restructured around useSyncExternalStore for a single localStorage flag.
+    try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (localStorage.getItem(ANNOUNCEMENT_DISMISSED_KEY) === "1") setDismissed(true);
+    } catch {
+      // localStorage unavailable (private mode, disabled storage) — announcement just stays shown.
+    }
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setCondensed(window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDocMouseDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (panelRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
+      setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onDocMouseDown);
+    return () => document.removeEventListener("mousedown", onDocMouseDown);
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (menuOpen) itemRefs.current.get("0-0")?.focus();
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
+
+  const dismissAnnouncement = () => {
+    setDismissed(true);
+    try {
+      localStorage.setItem(ANNOUNCEMENT_DISMISSED_KEY, "1");
+    } catch {
+      // Best-effort only — dismissal just won't be remembered on the next visit.
+    }
+  };
+
+  const closeMenu = (returnFocus: boolean) => {
+    setMenuOpen(false);
+    if (returnFocus) triggerRef.current?.focus();
+  };
+
+  const focusItem = (col: number, item: number) => {
+    itemRefs.current.get(`${col}-${item}`)?.focus();
+  };
+
+  const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setMenuOpen(true);
+    } else if (e.key === "Escape" && menuOpen) {
+      e.preventDefault();
+      closeMenu(false);
+    }
+  };
+
+  const handleItemKeyDown = (
+    e: React.KeyboardEvent<HTMLAnchorElement>,
+    col: number,
+    item: number,
+  ) => {
+    const colCount = columns.length;
+    const itemCount = columns[col].items.length;
+    switch (e.key) {
+      case "Escape":
+        e.preventDefault();
+        closeMenu(true);
+        break;
+      case "ArrowDown":
+        e.preventDefault();
+        focusItem(col, Math.min(item + 1, itemCount - 1));
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        if (item === 0) triggerRef.current?.focus();
+        else focusItem(col, item - 1);
+        break;
+      case "ArrowRight":
+        e.preventDefault();
+        focusItem(Math.min(col + 1, colCount - 1), 0);
+        break;
+      case "ArrowLeft":
+        e.preventDefault();
+        focusItem(Math.max(col - 1, 0), 0);
+        break;
+    }
+  };
+
+  return (
+    <Drawer>
+      {!dismissed && (
+        <div className="relative flex items-center justify-center gap-2 bg-ink px-10 py-2 text-center text-xs font-medium text-surface sm:text-sm">
+          <span>
+            Free shipping over {formatINR(freeShippingThresholdPaise)} &middot; Use code{" "}
+            <strong className="font-semibold tracking-[0.02em]">WELCOME5</strong> for 5% off your first order
+          </span>
+          <button
+            type="button"
+            onClick={dismissAnnouncement}
+            aria-label="Dismiss announcement"
+            className="absolute right-2 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded-sm hover:bg-white/10"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      <header className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur">
+        <div
+          className={cn(
+            "mx-auto flex max-w-7xl items-center gap-3 px-4 transition-[height] duration-200 ease-[cubic-bezier(.2,.6,.2,1)] sm:px-6",
+            condensed ? "h-14" : "h-20",
+          )}
+        >
+          <DrawerTrigger asChild>
+            <button
+              type="button"
+              aria-label="Open menu"
+              className="flex size-10 items-center justify-center rounded-sm text-ink lg:hidden"
+            >
+              <svg viewBox="0 0 20 20" fill="none" className="size-5" aria-hidden="true">
+                <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            </button>
+          </DrawerTrigger>
+
+          <Link href="/" className="font-display text-lg font-semibold tracking-[-0.01em] text-ink sm:text-xl">
+            Dishu Masala
+          </Link>
+
+          <nav className="relative ml-2 hidden lg:block">
+            <button
+              ref={triggerRef}
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((v) => !v)}
+              onKeyDown={handleTriggerKeyDown}
+              className="flex h-10 items-center gap-1 rounded-sm px-3 text-sm font-semibold text-ink hover:bg-surface-2"
+            >
+              Shop
+              <svg viewBox="0 0 16 16" fill="none" className={cn("size-3.5 transition-transform duration-150", menuOpen && "rotate-180")} aria-hidden="true">
+                <path d="m4 6 4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+
+            {menuOpen && (
+              <div
+                ref={panelRef}
+                role="menu"
+                aria-label="Shop collections"
+                className="absolute left-0 top-full z-50 mt-2 flex gap-8 rounded-lg border border-line bg-surface p-6 shadow-lift"
+              >
+                {columns.map((col, colIdx) => (
+                  <div key={col.label} role="group" aria-label={col.label} className="min-w-40">
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-ink-3">
+                      {col.label}
+                    </p>
+                    <ul className="flex flex-col gap-2.5">
+                      {col.items.map((item, itemIdx) => (
+                        <li key={item.slug}>
+                          <Link
+                            href={`/collections/${item.slug}/`}
+                            role="menuitem"
+                            ref={(el) => {
+                              if (el) itemRefs.current.set(`${colIdx}-${itemIdx}`, el);
+                              else itemRefs.current.delete(`${colIdx}-${itemIdx}`);
+                            }}
+                            onKeyDown={(e) => handleItemKeyDown(e, colIdx, itemIdx)}
+                            onClick={() => closeMenu(false)}
+                            className="flex items-center gap-2 rounded-sm px-1 py-1 text-sm font-medium text-ink-2 hover:text-ink focus-visible:text-ink"
+                          >
+                            {GRADIENT_TILE_SLUGS.has(item.slug) && (
+                              <span
+                                aria-hidden="true"
+                                className="size-4 shrink-0 rounded-[3px]"
+                                style={{ backgroundImage: "var(--gradient-lemon-shift)" }}
+                              />
+                            )}
+                            {item.title}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </nav>
+
+          <div className="ml-auto flex items-center gap-0.5">
+            {searchOpen ? (
+              <form
+                role="search"
+                onSubmit={(e) => e.preventDefault()}
+                className="flex items-center"
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    e.preventDefault();
+                    setSearchOpen(false);
+                    searchButtonRef.current?.focus();
+                  }
+                }}
+              >
+                <input
+                  ref={searchInputRef}
+                  type="search"
+                  aria-label="Search products"
+                  placeholder="Search products…"
+                  className="h-10 w-40 rounded-sm border border-line bg-surface px-3 text-sm text-ink placeholder:text-ink-3 sm:w-56"
+                  onBlur={() => setSearchOpen(false)}
+                />
+              </form>
+            ) : (
+              <button
+                ref={searchButtonRef}
+                type="button"
+                onClick={() => setSearchOpen(true)}
+                aria-label="Search"
+                className="flex size-10 items-center justify-center rounded-sm text-ink-2 hover:bg-surface-2 hover:text-ink"
+              >
+                <SearchIcon />
+              </button>
+            )}
+            <IconCountButton icon={<AccountIcon />} label="Account" count={0} href="/account/" />
+            <IconCountButton icon={<WishlistIcon />} label="Wishlist" count={0} href="/wishlist/" />
+            <IconCountButton icon={<CartIcon />} label="Cart" count={0} href="/cart/" />
+          </div>
+        </div>
+      </header>
+
+      <DrawerContent side="left">
+          <DrawerTitle className="mb-5 font-display text-lg font-semibold text-ink">Dishu Masala</DrawerTitle>
+          <DrawerDescription className="sr-only">Site navigation</DrawerDescription>
+          <nav aria-label="Mobile shop menu" className="flex flex-col gap-6">
+            {columns.map((col) => (
+              <div key={col.label}>
+                <p className="mb-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-ink-3">{col.label}</p>
+                <ul className="flex flex-col gap-2">
+                  {col.items.map((item) => (
+                    <li key={item.slug}>
+                      <DrawerClose asChild>
+                        <Link
+                          href={`/collections/${item.slug}/`}
+                          className="flex items-center gap-2 py-1.5 text-[0.95rem] font-medium text-ink-2"
+                        >
+                          {GRADIENT_TILE_SLUGS.has(item.slug) && (
+                            <span
+                              aria-hidden="true"
+                              className="size-4 shrink-0 rounded-[3px]"
+                              style={{ backgroundImage: "var(--gradient-lemon-shift)" }}
+                            />
+                          )}
+                          {item.title}
+                        </Link>
+                      </DrawerClose>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </nav>
+          <div className="mt-8 flex flex-col gap-1 border-t border-line pt-5">
+            <DrawerClose asChild>
+              <Link href="/account/" className="py-2 text-sm font-medium text-ink-2">
+                Account
+              </Link>
+            </DrawerClose>
+            <DrawerClose asChild>
+              <Link href="/wishlist/" className="py-2 text-sm font-medium text-ink-2">
+                Wishlist
+              </Link>
+            </DrawerClose>
+            <DrawerClose asChild>
+              <Link href="/cart/" className="py-2 text-sm font-medium text-ink-2">
+                Cart
+              </Link>
+            </DrawerClose>
+          </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
