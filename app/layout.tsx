@@ -1,29 +1,60 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Inter } from "next/font/google";
+import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
+import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Fraunces is a genuinely variable Google font (wght 100–900 plus an optical-size axis) — loading
+// it without a fixed `weight` gives the full variable range next/font can serve, and `axes`
+// explicitly pulls in `opsz` on top of the default `wght` axis so display sizes get the right
+// optical cut, per CLAUDE.md §5.2 ("Fraunces (variable, 400–700, opsz)"). CSS then only ever
+// requests 400/500/600/700 per the type scale (CLAUDE.md §5.3).
+const fraunces = Fraunces({
   subsets: ["latin"],
+  variable: "--font-fraunces",
+  display: "swap",
+  axes: ["opsz"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// Inter is used at the three static weights CLAUDE.md §5.2 calls for.
+const inter = Inter({
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-inter",
+  display: "swap",
 });
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "Dishu Masala",
-  description: "Organic Indian spices and premium herbal teas — Dishu Food and Beverages.",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Dishu Masala — Organic Indian Spices & Herbal Teas",
+    template: "%s — Dishu Masala",
+  },
+  description:
+    "Premium organic Indian spices and herbal teas from Dishu Food and Beverages, including the colour-changing Blue Tea.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en-IN" className={`${fraunces.variable} ${inter.variable} h-full antialiased`}>
+      <body className="flex min-h-full flex-col bg-bg text-ink">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-ink focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-surface"
+        >
+          Skip to content
+        </a>
+        <ToastProvider>
+          <Header />
+          <main id="main-content" className="flex-1">
+            {children}
+          </main>
+          <Footer />
+        </ToastProvider>
+      </body>
     </html>
   );
 }
