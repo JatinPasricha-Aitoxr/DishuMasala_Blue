@@ -53,6 +53,11 @@
     var(--color-brew-1) 0%, var(--color-brew-2) 20%, var(--color-brew-3) 45%,
     var(--color-brew-4) 68%, var(--color-brew-5) 86%, var(--color-citrus) 100%);
   --gradient-brew-cool: linear-gradient(135deg, var(--color-brew-1), var(--color-brew-3));
+  /* Red Tea's collection-header gradient (Phase 3, CLAUDE.md §5.4 "Blue Tea and Red Tea collection
+     tiles") — built the same way --gradient-brew-cool is, from two already-approved tokens
+     (hibiscus, brew-5) rather than a new hex literal. White text clears 4.5:1 against both stops
+     (5.86:1 / 4.77:1) so it's safe at body-copy size, not just large headings. */
+  --gradient-hibiscus: linear-gradient(135deg, var(--color-hibiscus), var(--color-brew-5));
 }
 
 /*
