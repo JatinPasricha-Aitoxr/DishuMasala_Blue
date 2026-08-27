@@ -19,10 +19,13 @@ import { NewsletterSection } from "@/components/sections/NewsletterSection";
  * follows CLAUDE.md §7.2's priority rule ("Blue Tea first. Then Red Tea. Then everything else") for
  * the top two slots; below that it's a client-directed homepage template, not the raw `priority`
  * order — `/shop`'s default sort (Phase 3) uses the unmodified `priority` order everywhere else.
- * Spices now renders before Combo Packs (2026-08-28 client request: "before the Combo Packs
- * section we need a section for Masala/spices, then combo section") even though Combos outranks
- * Spices on `priority` — the same kind of deliberate homepage-template exception PRD §5.1 item 7
- * already established for Classic & Assam running last despite its own higher `priority`.
+ * Two deliberate deviations from raw `priority` (2, then 3, then 4, then 5), both direct client
+ * requests, not oversights:
+ * - Classic & Assam (priority 3) now renders right after Red Tea (2026-08-28: "section after red
+ *   tea section"), not last — this reverses PRD §5.1 item 7's original "last and quietest"
+ *   placement for it.
+ * - Spices (priority 5) still renders before Combo Packs (priority 4) (2026-08-28: "before the
+ *   Combo Packs section we need a section for Masala/spices, then combo section").
  *
  * Every product/collection value below is read from Postgres via lib/db/queries/* — nothing in this
  * file or components/sections/* hardcodes a name, price or image URL.
@@ -65,10 +68,10 @@ export default async function Home() {
         <RedTeaSection products={redTea} lifestyleImage={redTeaLifestyle} />
       </ScrollColorBand>
       <PromoBannerSlider banners={redTeaBanner} ariaLabel="Red Tea promotion" />
+      <ClassicAssamStrip products={classicAssam} />
       <SpicesBanner banner={spicesBanner} />
       <SpicesGrid products={spices} />
       <ComboValue combos={combos} spices={spices} />
-      <ClassicAssamStrip products={classicAssam} />
       <RitualTeaser />
       <ReviewsEmptyState />
       <NewsletterSection />
