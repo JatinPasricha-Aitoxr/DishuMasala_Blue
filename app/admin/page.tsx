@@ -66,8 +66,8 @@ export default async function AdminDashboardPage() {
           value={awaitingDispatch}
           tone={awaitingDispatch > 0 ? "warn" : "ok"}
         />
-        <DashboardTile href="/admin/coming-soon?section=Products" label="Low or out of stock" value={lowStock} tone={lowStock > 0 ? "warn" : "ok"} />
-        <DashboardTile href="/admin/coming-soon?section=Reviews" label="Pending reviews" value={pendingReviews} tone={pendingReviews > 0 ? "warn" : "ok"} />
+        <DashboardTile href="/admin/products?status=published" label="Low or out of stock" value={lowStock} tone={lowStock > 0 ? "warn" : "ok"} />
+        <DashboardTile href="/admin/reviews?status=pending" label="Pending reviews" value={pendingReviews} tone={pendingReviews > 0 ? "warn" : "ok"} />
         <DashboardTile
           href="/admin/orders?status=confirmed"
           label="Shiprocket needs retry"
