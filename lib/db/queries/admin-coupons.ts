@@ -1,0 +1,71 @@
+import "server-only";
+
+import { and, asc, desc, eq, ne } from "drizzle-orm";
+import { db } from "../index";
+import { coupons, couponRedemptions, orders } from "../schema";
+
+export interface AdminCouponRow {
+  id: number;
+  code: string;
+  kind: "percent" | "fixed";
+  value: number;
+  minSpendPaise: number | null;
+  maxDiscountPaise: number | null;
+  firstOrderOnly: boolean;
+  usageLimit: number | null;
+  usedCount: number;
+  perUserLimit: number | null;
+  startsAt: Date | null;
+  endsAt: Date | null;
+  active: boolean;
+  appliesTo: unknown;
+}
+
+export async function listAdminCoupons(): Promise<AdminCouponRow[]> {
+  return db.select().from(coupons).orderBy(desc(coupons.active), asc(coupons.code));
+}
+
+export async function getAdminCouponById(id: number): Promise<AdminCouponRow | null> {
+  const [row] = await db.select().from(coupons).where(eq(coupons.id, id)).limit(1);
+  return row ?? null;
+}
+
+export async function isCouponCodeTaken(code: string, excludeId?: number): Promise<boolean> {
+  const conditions = [eq(coupons.code, code.toUpperCase())];
+  if (excludeId != null) conditions.push(ne(coupons.id, excludeId));
+  const [row] = await db.select({ id: coupons.id }).from(coupons).where(and(...conditions)).limit(1);
+  return !!row;
+}
+
+export interface CouponRedemptionRow {
+  id: number;
+  orderNumber: string;
+  orderEmail: string;
+  orderTotalPaise: number;
+  createdAt: Date;
+}
+
+export async function getCouponRedemptions(couponId: number): Promise<CouponRedemptionRow[]> {
+  const rows = await db
+    .select({
+      id: couponRedemptions.id,
+      orderNumber: orders.orderNumber,
+      orderEmail: orders.email,
+      orderTotalPaise: orders.totalPaise,
+      createdAt: couponRedemptions.createdAt,
+    })
+    .from(couponRedemptions)
+    .innerJoin(orders, eq(orders.id, couponRedemptions.orderId))
+    .where(eq(couponRedemptions.couponId, couponId))
+    .orderBy(desc(couponRedemptions.createdAt));
+  return rows;
+}
+
+export async function listProductsAndCollectionsForPicker() {
+  const { products, collections } = await import("../schema");
+  const [productRows, collectionRows] = await Promise.all([
+    db.select({ id: products.id, name: products.name }).from(products).orderBy(asc(products.name)),
+    db.select({ id: collections.id, title: collections.title }).from(collections).orderBy(asc(collections.priority)),
+  ]);
+  return { products: productRows, collections: collectionRows };
+}
