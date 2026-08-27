@@ -64,15 +64,16 @@ export function PromoBannerSlider({ banners }: { banners: HomepageBanner[] }) {
   }
 
   return (
-    <section aria-roledescription="carousel" aria-label="Promotions" className="w-full bg-bg">
-      <div
-        ref={containerRef}
-        className="relative w-full overflow-hidden bg-surface-2"
-        style={{ aspectRatio, maxHeight: "60vh" }}
-        onMouseEnter={() => setPlaying(false)}
-        onMouseLeave={() => setPlaying(true)}
-        onKeyDown={handleKeyDown}
-      >
+    <section aria-roledescription="carousel" aria-label="Promotions" className="w-full bg-bg py-6 sm:py-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div
+          ref={containerRef}
+          className="relative w-full overflow-hidden rounded-xl bg-surface-2 shadow-card"
+          style={{ aspectRatio, maxHeight: "60vh" }}
+          onMouseEnter={() => setPlaying(false)}
+          onMouseLeave={() => setPlaying(true)}
+          onKeyDown={handleKeyDown}
+        >
           {banners.map((banner, i) => (
             <Link
               key={banner.slot}
@@ -147,6 +148,7 @@ export function PromoBannerSlider({ banners }: { banners: HomepageBanner[] }) {
               <path d="M7.5 15 12.5 10l-5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
+        </div>
       </div>
     </section>
   );
