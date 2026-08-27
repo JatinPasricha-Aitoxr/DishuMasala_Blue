@@ -53,14 +53,16 @@ function getClient(): S3Client {
   return cachedClient;
 }
 
-export type R2Prefix = "products" | "reviews" | "posts" | "brand";
+export type R2Prefix = "products" | "reviews" | "posts" | "brand" | "banners";
 
 /**
  * Key convention (CLAUDE.md §6 / PROMPTS Phase 0 item 7):
  * `products/<slug>/<hash>.<ext>`, `reviews/<reviewId>/<hash>.<ext>`, `posts/<slug>/<hash>.<ext>`.
  * `brand/<id>/<hash>.<ext>` is the same idea for the one-off site-identity assets (logo, favicon
  * source) — `<id>` is a fixed slot name ("logo", "favicon") rather than a per-row database id,
- * since there's exactly one of each.
+ * since there's exactly one of each. `banners/<slot>/<hash>.<ext>` is the same pattern again for
+ * the homepage promotional slider (scripts/migrate-homepage-banners.ts) — client-supplied
+ * marketing creative, not derived from `data/catalog.json`.
  * `variant` lets a caller disambiguate multiple derivatives of the same source image (e.g. a
  * width) without breaking the base convention — the hash still identifies the source content.
  */

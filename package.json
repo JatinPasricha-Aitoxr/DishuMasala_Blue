@@ -18,6 +18,7 @@
     "db:studio": "drizzle-kit studio",
     "migrate-images": "tsx --env-file-if-exists=.env scripts/migrate-images.ts",
     "migrate-brand-assets": "tsx --env-file-if-exists=.env scripts/migrate-brand-assets.ts",
+    "migrate-homepage-banners": "tsx --env-file-if-exists=.env scripts/migrate-homepage-banners.ts",
     "create-staff-user": "tsx --env-file-if-exists=.env scripts/create-staff-user.ts",
     "seed-perf-orders": "tsx --env-file-if-exists=.env scripts/seed-perf-orders.ts"
   },
