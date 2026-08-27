@@ -43,6 +43,13 @@ function CodIcon() {
  * Exactly the four verifiable claims CLAUDE.md §8 allows — double-layer packaging, free shipping
  * over the DB threshold, sourced in Punjab, COD available. Nothing else: no customer count, no
  * certification, no number that isn't traceable to seeded data or CLAUDE.md itself.
+ *
+ * Renders as a continuously scrolling marquee (the claim list repeated twice, scrolled exactly
+ * one copy's width via app/globals.css's `.trust-marquee-track`) — a real, verifiable-facts-only
+ * version of the repeating promo strip pattern common on Indian D2C storefronts (e.g.
+ * bluetea.co.in's "30 Lakh+ Happy Customers · Featured on Shark Tank" strip). Unlike that
+ * reference, every claim here is real; nothing is invented to fill the same visual slot. Pure
+ * CSS — no JavaScript needed to render or animate it — and pauses on hover/focus.
  */
 export async function TrustStrip() {
   const freeShippingThresholdPaise = await getFreeShippingThresholdPaise();
@@ -54,16 +61,28 @@ export async function TrustStrip() {
     { icon: <CodIcon />, label: "Cash on delivery available" },
   ];
 
-  return (
-    <section aria-label="Why shop with us" className="border-y border-line bg-surface-2">
-      <ul className="mx-auto grid max-w-7xl grid-cols-2 gap-x-4 gap-y-5 px-4 py-6 sm:px-6 lg:grid-cols-4 lg:gap-4">
+  function claimList(ariaHidden: boolean) {
+    return (
+      <ul
+        aria-hidden={ariaHidden || undefined}
+        className={`flex shrink-0 items-center ${ariaHidden ? "trust-marquee-duplicate" : ""}`}
+      >
         {claims.map((c) => (
-          <li key={c.label} className="flex items-center gap-2.5">
+          <li key={c.label} className="flex items-center gap-2.5 px-6 py-3 sm:px-8">
             {c.icon}
-            <span className="text-sm font-medium text-ink-2">{c.label}</span>
+            <span className="whitespace-nowrap text-sm font-medium text-ink-2">{c.label}</span>
           </li>
         ))}
       </ul>
+    );
+  }
+
+  return (
+    <section aria-label="Why shop with us" className="overflow-hidden border-y border-line bg-surface-2">
+      <div className="trust-marquee-track">
+        {claimList(false)}
+        {claimList(true)}
+      </div>
     </section>
   );
 }

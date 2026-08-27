@@ -153,6 +153,35 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/*
+ * TrustStrip's repeating marquee (components/layout/TrustStrip.tsx) — a continuous horizontal
+ * scroll, not a narrative animation with a meaningful "finished" frame, so it gets its own
+ * explicit prefers-reduced-motion override below rather than relying on the generic
+ * iteration-count-collapse trick further down this file (that trick would freeze the track
+ * mid-scroll, which reads as broken, not finished). The track renders the claim list twice back
+ * to back and scrolls exactly one copy's width, so the loop point is invisible.
+ */
+.trust-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: trust-marquee 26s linear infinite;
+}
+.trust-marquee-track:hover {
+  animation-play-state: paused;
+}
+@keyframes trust-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .trust-marquee-track {
+    animation: none;
+  }
+  .trust-marquee-duplicate {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
