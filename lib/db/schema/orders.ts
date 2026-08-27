@@ -52,6 +52,17 @@ export const orders = pgTable("orders", {
   trackingUrl: text("tracking_url"),
   customerNote: text("customer_note"),
   staffNote: text("staff_note"),
+  // Refund bookkeeping (Phase 7 — "record a refund with amount and note"). Kept on the order row
+  // itself rather than a separate `refunds` table: CLAUDE.md §6's schema contract has no such
+  // table, this project supports at most one refund per order in scope, and the order is already
+  // the one place its full financial history is read from. `refundedAt` is null until a refund is
+  // recorded; `razorpayRefundId` stays null when the real Razorpay refund call couldn't be made
+  // (no credentials in this environment, or an API failure) — the same honest-degrade pattern as
+  // every other third-party integration in this project.
+  refundAmountPaise: integer("refund_amount_paise"),
+  refundNote: text("refund_note"),
+  razorpayRefundId: text("razorpay_refund_id"),
+  refundedAt: timestamp("refunded_at", { withTimezone: true }),
   placedAt: timestamp("placed_at", { withTimezone: true }).notNull().defaultNow(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -65,6 +76,10 @@ export const orders = pgTable("orders", {
   uniqueIndex("orders_razorpay_payment_id_uniq").on(t.razorpayPaymentId),
   index("orders_status_placed_at_idx").on(t.status, t.placedAt),
   index("orders_user_id_idx").on(t.userId),
+  // Phase 7's admin order search ("by order number, phone or email" — PROMPTS.md item 4) needs
+  // phone/email lookups to hit an index too, not just the order-number unique index above.
+  index("orders_phone_idx").on(t.phone),
+  index("orders_email_idx").on(t.email),
 ]);
 
 export const orderItems = pgTable("order_items", {

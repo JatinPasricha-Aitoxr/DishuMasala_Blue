@@ -66,6 +66,10 @@ export interface Order {
   trackingUrl: string | null;
   customerNote: string | null;
   staffNote: string | null;
+  refundAmountPaise: Paise | null;
+  refundNote: string | null;
+  razorpayRefundId: string | null;
+  refundedAt: Date | null;
   placedAt: Date;
   createdAt: Date;
   updatedAt: Date;
