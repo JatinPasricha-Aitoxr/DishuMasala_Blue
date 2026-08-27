@@ -122,6 +122,29 @@ export async function getSiteBranding(): Promise<SiteBranding> {
   };
 }
 
+export interface HomepageBannerRow {
+  slot: string;
+  r2Key: string;
+  width: number;
+  height: number;
+  alt: string;
+  href: string;
+}
+
+export type HomepageBanner = HomepageBannerRow & { url: string };
+
+/** The client-supplied homepage promotional slider (scripts/migrate-homepage-banners.ts) — an
+ * explicit, logged exception to CLAUDE.md §8's "invent nothing"/no-health-claims rule, since
+ * these images carry the client's own marketing text baked into the pixels. See that script's
+ * header comment and CLAUDE.md §8 for the full note. Empty array if the script hasn't been run
+ * yet — callers must render nothing rather than a broken slider. */
+export async function getHomepageBanners(): Promise<HomepageBanner[]> {
+  const [row] = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, "homepage_banners")).limit(1);
+  const value = row?.value as HomepageBannerRow[] | undefined;
+  if (!Array.isArray(value)) return [];
+  return value.map((banner) => ({ ...banner, url: publicUrl(banner.r2Key) }));
+}
+
 /** Every settings row the admin settings page (Phase 7 item 6) reads and edits, in one round
  * trip — the "one typed helper" every settings read in this codebase goes through (grepped and
  * confirmed at the end of Phase 7: no component reads `settings` ad hoc or hardcodes a literal

@@ -330,6 +330,15 @@ and no quantity is ever shown. Only when a real count exists and is under 10 may
   mentions, or health and medicinal claims. Trust claims ship only with what is verifiable:
   double-layer packaging, free shipping over ₹500, sourced in Punjab, COD available. If the client
   wants more, they supply it in writing.
+- **Logged exception (2026-08-28):** the homepage promotional slider
+  (`components/hero/PromoBannerSlider.tsx`, `scripts/migrate-homepage-banners.ts`) uses two
+  client-supplied banner images as-is, with the client's own marketing text — including
+  health-adjacent phrasing this project would never write itself — baked directly into the image
+  pixels. Claude flagged the conflict with this section directly to the client stakeholder before
+  building it; the client explicitly chose to use the banners unedited. This is a one-off,
+  client-directed exception for that specific slider, not a change to the rule above — new content
+  this project writes itself (copy, accordions, policy pages, future banners) still follows every
+  constraint in this section unless the client makes the same explicit call again.
 
 ---
 
