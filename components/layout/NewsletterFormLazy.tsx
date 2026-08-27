@@ -5,8 +5,7 @@ import dynamic from "next/dynamic";
 // NewsletterForm pulls in react-hook-form + the Zod resolver purely for one below-the-fold email
 // field (footer + the homepage newsletter section) — real weight that has no business in every
 // page's first-load JS (CLAUDE.md §11 / PROMPTS.md Phase 2: homepage first-load JS ≤ 180KB gzip).
-// `ssr: false` needs a Client Component boundary, hence this one-line wrapper (same pattern as
-// components/hero/BrewShiftLayerLazy.tsx).
+// `ssr: false` needs a Client Component boundary, hence this one-line wrapper.
 //
 // The `loading` fallback below is sized to match the real form's rendered height exactly (a 20px
 // label line + an 8px gap + a 44px input/button row, the same h-11 every Input and Button already

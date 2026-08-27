@@ -61,34 +61,6 @@
 }
 
 /*
- * Hero brew-shift engine (components/hero/BrewShiftLayer.tsx, Phase 2). Registers two custom
- * properties as real <color> values so the browser can natively interpolate between brew-palette
- * stops when the component retargets them on scroll/drag — CLAUDE.md §5.5's hero-morph timing
- * (900–1400ms) and cubic-bezier(.2,.6,.2,1), applied here as a real CSS transition rather than a
- * hand-rolled JS tween. `@property` requires a literal `initial-value` (it cannot reference another
- * custom property), so these two hex values are copies of --color-brew-1 / --color-brew-2 above —
- * the hero's resting state ("Blue gradient brew at rest" per PROMPTS.md Phase 2) — and must be kept
- * in sync if those tokens ever change. Browsers without @property support (a small, shrinking set)
- * simply treat the property as un-interpolated: the gradient still renders correctly, it just swaps
- * instead of crossfading — never a broken state.
- */
-@property --brew-near {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #123FA8;
-}
-@property --brew-far {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: #2E5BE0;
-}
-
-.brew-shift-blob {
-  background-image: radial-gradient(circle at 32% 28%, var(--brew-near), var(--brew-far) 72%);
-  transition: --brew-near 1100ms cubic-bezier(.2, .6, .2, 1), --brew-far 1100ms cubic-bezier(.2, .6, .2, 1);
-}
-
-/*
  * Font wiring — app/layout.tsx loads Fraunces and Inter via next/font/google and exposes them as
  * --font-fraunces / --font-inter CSS variables (real fallback stacks baked in by next/font itself,
  * plus the ui-serif/Georgia/serif and ui-sans-serif/system-ui/sans-serif stacks CLAUDE.md §5.2

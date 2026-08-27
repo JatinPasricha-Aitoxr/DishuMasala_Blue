@@ -1,7 +1,6 @@
 import { getCollectionsWithStats } from "@/lib/db/queries/collections";
 import { getPublishedProductsByCollectionSlug } from "@/lib/db/queries/products";
 import { getHomepageBanners } from "@/lib/db/queries/settings";
-import { LemonShiftHero } from "@/components/hero/LemonShiftHero";
 import { PromoBannerSlider } from "@/components/hero/PromoBannerSlider";
 import { TrustStrip } from "@/components/layout/TrustStrip";
 import { BlueTeaBand } from "@/components/sections/BlueTeaBand";
@@ -53,7 +52,6 @@ export default async function Home() {
   return (
     <>
       <PromoBannerSlider banners={banners} />
-      <LemonShiftHero />
       <TrustStrip />
       <BlueTeaBand products={blueTea} />
       <RedTeaSection products={redTea} />

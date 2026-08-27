@@ -35,7 +35,6 @@ These are two different pipelines and should not be confused:
 | Slot key | Aspect ratio | Interim visual | Stands in for |
 |---|---|---|---|
 | `product-packshot-generic` | 1 / 1 | Flat (`--color-surface-2`) | A real product packshot on white/ivory background, migrated from the old site and served from R2. Used only when a product has no `product_images` row yet. |
-| `hero-blue-tea-packshot` | 4 / 5 | Flat (`--color-surface-2`) | The homepage hero's packshot — the Blue Tea pouch/jar on white. The animated brew gradient renders behind/around this slot as a separate layer, so the placeholder itself stays flat. |
 | `blue-tea-band-editorial` | 21 / 9 | Flat (`--color-surface-2`) | The homepage's full-bleed Blue Tea band: butterfly pea tea mid-pour, caught mid colour-change from blue to violet as lemon hits the cup. Flat tone (not the brew-cool gradient) because the band's own section background already carries that gradient. |
 | `pdp-brew-story-blue-tea` | 4 / 3 | `--gradient-brew-cool` | The Blue Tea PDP's brew-story sequence — three or four close-up frames of the same cup shifting from blue to magenta, no identifiable hands or faces. |
 | `lifestyle-sourced-punjab` | 4 / 5 | Flat warm (`--color-line`) | A Punjab sourcing/farm lifestyle shot supporting the "sourced in Punjab" trust claim — fields or raw spice, no named farmer, no certification mark overlaid. |

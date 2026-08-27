@@ -12,21 +12,6 @@
  */
 
 export const HOME_COPY = {
-  hero: {
-    eyebrow: "Butterfly Pea Flower Tea",
-    headline: "Deep blue. One squeeze of lemon. Watch it turn violet.",
-    sub:
-      "Blue Tea is a naturally caffeine-free herbal infusion of butterfly pea flower, spearmint, " +
-      "ginger, dandelion, cinnamon and lemongrass — brewed deep blue, and yours to shift toward " +
-      "violet with a wedge of lemon.",
-    ctaPrimaryLabel: "Shop Blue Tea",
-    ctaPrimaryHref: "/collections/blue-tea/",
-    ctaSecondaryLabel: "Explore all",
-    ctaSecondaryHref: "/shop/",
-    sliderLabel: "Add lemon",
-    sliderHint: "Drag to shift the brew, or keep scrolling",
-  },
-
   blueTeaBand: {
     eyebrow: "The Lemon Shift",
     heading: "Blue, until you add lemon.",

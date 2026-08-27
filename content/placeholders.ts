@@ -33,15 +33,6 @@ export const PLACEHOLDER_MANIFEST = {
       "that exists.",
     tone: "flat",
   },
-  "hero-blue-tea-packshot": {
-    aspectRatio: "4 / 5",
-    standsInFor:
-      "The homepage hero's packshot: the Blue Tea pouch/jar on white, the product the whole hero " +
-      "is selling. The animated brew gradient (components/hero/LemonShiftHero.tsx) renders behind " +
-      "and around this slot as a separate CSS layer, so this placeholder itself stays flat — no " +
-      "logo, no on-image copy, no person.",
-    tone: "flat",
-  },
   "blue-tea-band-editorial": {
     aspectRatio: "21 / 9",
     standsInFor:

@@ -36,8 +36,8 @@ const BANNERS: BannerSource[] = [
   },
   {
     slot: "blue-tea-chai",
-    file: "7861dd60-1997-471c-8e83-2df1a0dfaeb2.png",
-    alt: "Chai with Dishu — Premium Herbal Blue Tea, enriched with Butterfly Pea Flower, 100% herbal, caffeine-free",
+    file: "hero banner.png",
+    alt: "Blue by Nature, Better by Choice — Dishu Premium Herbal Blue Tea, 100% herbal, caffeine-free, zero sugar, enriched with Butterfly Pea Flower",
     href: "/collections/blue-tea",
   },
 ];
