@@ -16,19 +16,26 @@ export interface BannerSource {
   file: string;
   alt: string;
   href: string;
+  /** An optional separate crop/photo for narrow viewports (e.g. a portrait 4:5 image instead of
+   * the desktop's wide landscape one) — uploaded under the same slot with its own content hash. */
+  mobileFile?: string;
 }
 
-export interface MigratedBanner {
-  slot: string;
+export interface MigratedBannerImage {
   r2Key: string;
   width: number;
   height: number;
-  alt: string;
-  href: string;
 }
 
-async function migrateOne(banner: BannerSource): Promise<MigratedBanner> {
-  const buffer = readFileSync(join(process.cwd(), "data/banners", banner.file));
+export interface MigratedBanner extends MigratedBannerImage {
+  slot: string;
+  alt: string;
+  href: string;
+  mobile?: MigratedBannerImage;
+}
+
+async function uploadOne(file: string, slot: string): Promise<MigratedBannerImage> {
+  const buffer = readFileSync(join(process.cwd(), "data/banners", file));
   const processed = await processImage(buffer);
   // Content hash (not a fixed "current" slug) so swapping a banner's source image gives every
   // derivative a brand-new key/URL — otherwise the browser and Next's own image-optimizer cache
@@ -41,7 +48,7 @@ async function migrateOne(banner: BannerSource): Promise<MigratedBanner> {
   let canonicalHeight = 0;
 
   for (const derivative of processed.derivatives) {
-    const key = buildKey("banners", banner.slot, hash, derivative.format, `w${derivative.width}`);
+    const key = buildKey("banners", slot, hash, derivative.format, `w${derivative.width}`);
     await putObject(key, derivative.buffer, `image/${derivative.format}`);
     if (derivative.format === "webp" && derivative.width >= canonicalWidth) {
       canonicalKey = key;
@@ -50,16 +57,18 @@ async function migrateOne(banner: BannerSource): Promise<MigratedBanner> {
     }
   }
 
-  if (!canonicalKey) throw new Error(`${banner.slot}: no webp derivative produced`);
-  console.log(`[uploaded] ${banner.slot}: ${banner.file} -> ${canonicalKey} (${canonicalWidth}x${canonicalHeight})`);
-  return {
-    slot: banner.slot,
-    r2Key: canonicalKey,
-    width: canonicalWidth,
-    height: canonicalHeight,
-    alt: banner.alt,
-    href: banner.href,
-  };
+  if (!canonicalKey) throw new Error(`${slot} (${file}): no webp derivative produced`);
+  console.log(`[uploaded] ${slot}: ${file} -> ${canonicalKey} (${canonicalWidth}x${canonicalHeight})`);
+  return { r2Key: canonicalKey, width: canonicalWidth, height: canonicalHeight };
+}
+
+async function migrateOne(banner: BannerSource): Promise<MigratedBanner> {
+  const [main, mobile] = await Promise.all([
+    uploadOne(banner.file, banner.slot),
+    banner.mobileFile ? uploadOne(banner.mobileFile, `${banner.slot}-mobile`) : Promise.resolve(undefined),
+  ]);
+
+  return { ...main, slot: banner.slot, alt: banner.alt, href: banner.href, mobile };
 }
 
 /** Uploads every banner in `sources`, then upserts the result array under `settingsKey`. */

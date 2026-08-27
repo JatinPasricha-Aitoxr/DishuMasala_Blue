@@ -47,11 +47,14 @@ export function PromoBannerSlider({ banners, ariaLabel = "Promotions" }: { banne
 
   if (banners.length === 0) return null;
 
-  // A fixed ratio (rather than each slide's own width/height) keeps the frame's size stable when
-  // slides change — the two banners currently in rotation have quite different proportions
-  // (2.4:1 and 1.5:1), so sizing the box per-slide made it visibly jump on every transition.
-  // object-cover on each image absorbs the difference by cropping, same as any other banner slider.
-  const aspectRatio = "21 / 9";
+  // A fixed ratio per breakpoint (rather than each slide's own width/height) keeps the frame's
+  // size stable when slides change — sizing the box per-slide made it visibly jump on every
+  // transition. object-cover on each image absorbs any remaining mismatch by cropping. Only when
+  // the *current* slide actually has a dedicated mobile crop does the box switch to a taller
+  // mobile ratio — a banner with no mobile image stays at the wide ratio on every breakpoint
+  // (object-cover already handled that case fine; forcing a portrait box on it would crop far too
+  // aggressively for an image that was never shot for that ratio).
+  const aspectClass = banners[index]?.mobile ? "aspect-[4/5] sm:aspect-[21/9]" : "aspect-[21/9]";
 
   function goTo(i: number) {
     setIndex(((i % banners.length) + banners.length) % banners.length);
@@ -72,8 +75,8 @@ export function PromoBannerSlider({ banners, ariaLabel = "Promotions" }: { banne
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div
           ref={containerRef}
-          className="relative w-full overflow-hidden rounded-xl bg-surface-2 shadow-card"
-          style={{ aspectRatio, maxHeight: "60vh" }}
+          className={`relative w-full overflow-hidden rounded-xl bg-surface-2 shadow-card ${aspectClass}`}
+          style={{ maxHeight: "60vh" }}
           onMouseEnter={() => setPlaying(false)}
           onMouseLeave={() => setPlaying(true)}
           onKeyDown={handleKeyDown}
@@ -87,13 +90,23 @@ export function PromoBannerSlider({ banners, ariaLabel = "Promotions" }: { banne
               className="absolute inset-0 transition-opacity duration-500 ease-out"
               style={{ opacity: i === index ? 1 : 0, pointerEvents: i === index ? "auto" : "none" }}
             >
+              {banner.mobile && (
+                <Image
+                  src={banner.mobile.url}
+                  alt={banner.alt}
+                  fill
+                  priority={i === 0}
+                  sizes="100vw"
+                  className="object-cover sm:hidden"
+                />
+              )}
               <Image
                 src={banner.url}
                 alt={banner.alt}
                 fill
                 priority={i === 0}
                 sizes="100vw"
-                className="object-cover"
+                className={`object-cover ${banner.mobile ? "hidden sm:block" : ""}`}
               />
             </Link>
           ))}

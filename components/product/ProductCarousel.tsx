@@ -77,8 +77,8 @@ export function ProductCarousel({ products, label, cardWidthClassName = "w-[72%]
         className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {products.map((p) => (
-          <li key={p.slug} data-carousel-item className={`shrink-0 snap-start ${cardWidthClassName}`}>
-            <ProductCard {...toProductCardProps(p)} />
+          <li key={p.slug} data-carousel-item className={`flex shrink-0 snap-start ${cardWidthClassName}`}>
+            <ProductCard {...toProductCardProps(p)} className="h-full w-full" />
           </li>
         ))}
       </ul>

@@ -122,6 +122,12 @@ export async function getSiteBranding(): Promise<SiteBranding> {
   };
 }
 
+export interface HomepageBannerMobileRow {
+  r2Key: string;
+  width: number;
+  height: number;
+}
+
 export interface HomepageBannerRow {
   slot: string;
   r2Key: string;
@@ -129,9 +135,16 @@ export interface HomepageBannerRow {
   height: number;
   alt: string;
   href: string;
+  /** An optional separate crop/image for narrow viewports (e.g. a portrait 4:5 photo instead of
+   * the desktop's wide landscape one) — client-supplied per banner, not derived. Falls back to
+   * the main image at every breakpoint when absent. */
+  mobile?: HomepageBannerMobileRow;
 }
 
-export type HomepageBanner = HomepageBannerRow & { url: string };
+export type HomepageBanner = Omit<HomepageBannerRow, "mobile"> & {
+  url: string;
+  mobile?: HomepageBannerMobileRow & { url: string };
+};
 
 /** Shared reader for any banner-set settings row (scripts/_lib/banner-migrate.ts writes this same
  * shape) — an explicit, logged exception to CLAUDE.md §8's "invent nothing"/no-health-claims rule,
@@ -142,7 +155,11 @@ async function getBannerSet(settingsKey: string): Promise<HomepageBanner[]> {
   const [row] = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, settingsKey)).limit(1);
   const value = row?.value as HomepageBannerRow[] | undefined;
   if (!Array.isArray(value)) return [];
-  return value.map((banner) => ({ ...banner, url: publicUrl(banner.r2Key) }));
+  return value.map((banner) => ({
+    ...banner,
+    url: publicUrl(banner.r2Key),
+    mobile: banner.mobile ? { ...banner.mobile, url: publicUrl(banner.mobile.r2Key) } : undefined,
+  }));
 }
 
 /** The homepage promotional slider (scripts/migrate-homepage-banners.ts). */

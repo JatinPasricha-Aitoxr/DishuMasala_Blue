@@ -122,6 +122,10 @@ function IconCountButton({
 }
 
 export function HeaderClient({ columns, freeShippingThresholdPaise, logo }: HeaderClientProps) {
+  // Flat, priority-ordered list for the always-visible desktop nav — see the comment at its call
+  // site for why this flattens `columns` rather than fetching a second shape.
+  const flatCollectionLinks = columns.flatMap((col) => col.items);
+
   const cartCount = useCartStore(selectItemCount);
   const openCart = useCartStore((s) => s.open);
   const { status } = useSession();
@@ -130,7 +134,6 @@ export function HeaderClient({ columns, freeShippingThresholdPaise, logo }: Head
   const [dbWishlistCount, setDbWishlistCount] = useState<number | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const [condensed, setCondensed] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
   // Header wishlist count reflects whichever source currently applies (PROMPTS.md Phase 6 item 4):
@@ -150,11 +153,8 @@ export function HeaderClient({ columns, freeShippingThresholdPaise, logo }: Head
 
   const wishlistCount = isSignedIn ? (dbWishlistCount ?? 0) : localWishlistCount;
 
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const itemRefs = useRef<Map<string, HTMLAnchorElement>>(new Map());
 
   useEffect(() => {
     // Reading localStorage (an external system) can only happen after mount — the server has no
@@ -180,21 +180,6 @@ export function HeaderClient({ columns, freeShippingThresholdPaise, logo }: Head
   }, []);
 
   useEffect(() => {
-    if (!menuOpen) return;
-    const onDocMouseDown = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (panelRef.current?.contains(target) || triggerRef.current?.contains(target)) return;
-      setMenuOpen(false);
-    };
-    document.addEventListener("mousedown", onDocMouseDown);
-    return () => document.removeEventListener("mousedown", onDocMouseDown);
-  }, [menuOpen]);
-
-  useEffect(() => {
-    if (menuOpen) itemRefs.current.get("0-0")?.focus();
-  }, [menuOpen]);
-
-  useEffect(() => {
     if (searchOpen) searchInputRef.current?.focus();
   }, [searchOpen]);
 
@@ -204,57 +189,6 @@ export function HeaderClient({ columns, freeShippingThresholdPaise, logo }: Head
       localStorage.setItem(ANNOUNCEMENT_DISMISSED_KEY, "1");
     } catch {
       // Best-effort only — dismissal just won't be remembered on the next visit.
-    }
-  };
-
-  const closeMenu = (returnFocus: boolean) => {
-    setMenuOpen(false);
-    if (returnFocus) triggerRef.current?.focus();
-  };
-
-  const focusItem = (col: number, item: number) => {
-    itemRefs.current.get(`${col}-${item}`)?.focus();
-  };
-
-  const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setMenuOpen(true);
-    } else if (e.key === "Escape" && menuOpen) {
-      e.preventDefault();
-      closeMenu(false);
-    }
-  };
-
-  const handleItemKeyDown = (
-    e: React.KeyboardEvent<HTMLAnchorElement>,
-    col: number,
-    item: number,
-  ) => {
-    const colCount = columns.length;
-    const itemCount = columns[col].items.length;
-    switch (e.key) {
-      case "Escape":
-        e.preventDefault();
-        closeMenu(true);
-        break;
-      case "ArrowDown":
-        e.preventDefault();
-        focusItem(col, Math.min(item + 1, itemCount - 1));
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        if (item === 0) triggerRef.current?.focus();
-        else focusItem(col, item - 1);
-        break;
-      case "ArrowRight":
-        e.preventDefault();
-        focusItem(Math.min(col + 1, colCount - 1), 0);
-        break;
-      case "ArrowLeft":
-        e.preventDefault();
-        focusItem(Math.max(col - 1, 0), 0);
-        break;
     }
   };
 
@@ -300,64 +234,31 @@ export function HeaderClient({ columns, freeShippingThresholdPaise, logo }: Head
             <BrandMark logo={logo} />
           </Link>
 
-          <nav className="relative ml-2 hidden lg:block">
-            <button
-              ref={triggerRef}
-              type="button"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen((v) => !v)}
-              onKeyDown={handleTriggerKeyDown}
-              className="flex h-10 items-center gap-1 rounded-sm px-3 text-sm font-semibold text-ink hover:bg-surface-2"
-            >
-              Shop
-              <svg viewBox="0 0 16 16" fill="none" className={cn("size-3.5 transition-transform duration-150", menuOpen && "rotate-180")} aria-hidden="true">
-                <path d="m4 6 4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-
-            {menuOpen && (
-              <div
-                ref={panelRef}
-                role="menu"
-                aria-label="Shop collections"
-                className="absolute left-0 top-full z-50 mt-2 flex gap-8 rounded-lg border border-line bg-surface p-6 shadow-lift"
+          {/* Flat top-level nav (client request, matching bluetea.co.in) — every collection is a
+              direct link in the header itself, nothing hidden behind a "Shop" dropdown trigger.
+              Flattened from `columns` (still DB-priority-ordered — CLAUDE.md §7.2) rather than
+              adding a second data shape; the "Teas" grouping only mattered for the old dropdown's
+              column layout. */}
+          <nav aria-label="Collections" className="ml-2 hidden items-center gap-1 lg:flex">
+            {flatCollectionLinks.map((item) => (
+              <Link
+                key={item.slug}
+                href={`/collections/${item.slug}/`}
+                className="flex items-center gap-1.5 rounded-sm px-3 py-2 text-sm font-semibold text-ink hover:bg-surface-2"
               >
-                {columns.map((col, colIdx) => (
-                  <div key={col.label} role="group" aria-label={col.label} className="min-w-40">
-                    <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-ink-3">
-                      {col.label}
-                    </p>
-                    <ul className="flex flex-col gap-2.5">
-                      {col.items.map((item, itemIdx) => (
-                        <li key={item.slug}>
-                          <Link
-                            href={`/collections/${item.slug}/`}
-                            role="menuitem"
-                            ref={(el) => {
-                              if (el) itemRefs.current.set(`${colIdx}-${itemIdx}`, el);
-                              else itemRefs.current.delete(`${colIdx}-${itemIdx}`);
-                            }}
-                            onKeyDown={(e) => handleItemKeyDown(e, colIdx, itemIdx)}
-                            onClick={() => closeMenu(false)}
-                            className="flex items-center gap-2 rounded-sm px-1 py-1 text-sm font-medium text-ink-2 hover:text-ink focus-visible:text-ink"
-                          >
-                            {GRADIENT_TILE_SLUGS.has(item.slug) && (
-                              <span
-                                aria-hidden="true"
-                                className="size-4 shrink-0 rounded-[3px]"
-                                style={{ backgroundImage: "var(--gradient-lemon-shift)" }}
-                              />
-                            )}
-                            {item.title}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
+                {GRADIENT_TILE_SLUGS.has(item.slug) && (
+                  <span
+                    aria-hidden="true"
+                    className="size-3 shrink-0 rounded-[3px]"
+                    style={{ backgroundImage: "var(--gradient-lemon-shift)" }}
+                  />
+                )}
+                {item.title}
+              </Link>
+            ))}
+            <Link href="/shop/" className="rounded-sm px-3 py-2 text-sm font-semibold text-ink-2 hover:bg-surface-2 hover:text-ink">
+              All products
+            </Link>
           </nav>
 
           <div className="ml-auto flex items-center gap-0.5">

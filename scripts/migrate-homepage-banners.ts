@@ -20,6 +20,9 @@ const BANNERS: BannerSource[] = [
   {
     slot: "blue-tea-chai",
     file: "hero banner.png",
+    // Portrait crop for narrow viewports (client-supplied — the landscape desktop banner crops
+    // away too much of the pack/copy on a phone-width screen otherwise).
+    mobileFile: "M_Hero Banner.png",
     alt: "Blue by Nature, Better by Choice — Dishu Premium Herbal Blue Tea, 100% herbal, caffeine-free, zero sugar, enriched with Butterfly Pea Flower",
     href: "/collections/blue-tea",
   },
