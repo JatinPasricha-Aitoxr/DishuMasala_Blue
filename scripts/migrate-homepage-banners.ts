@@ -13,6 +13,7 @@
  *
  * Run with: pnpm migrate-homepage-banners
  */
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { buildKey, putObject } from "../lib/storage/r2-core";
@@ -46,13 +47,17 @@ async function migrateOne(banner: BannerSource): Promise<{
 }> {
   const buffer = readFileSync(join(process.cwd(), "data/banners", banner.file));
   const processed = await processImage(buffer);
+  // Content hash (not a fixed "current" slug) so swapping a banner's source image gives every
+  // derivative a brand-new key/URL — otherwise the browser and Next's own image-optimizer cache
+  // keep serving the previous picture forever under the unchanged URL, exactly the bug this fixed.
+  const hash = createHash("sha256").update(buffer).digest("hex").slice(0, 16);
 
   let canonicalKey: string | null = null;
   let canonicalWidth = 0;
   let canonicalHeight = 0;
 
   for (const derivative of processed.derivatives) {
-    const key = buildKey("banners", banner.slot, "current", derivative.format, `w${derivative.width}`);
+    const key = buildKey("banners", banner.slot, hash, derivative.format, `w${derivative.width}`);
     await putObject(key, derivative.buffer, `image/${derivative.format}`);
     if (derivative.format === "webp" && derivative.width >= canonicalWidth) {
       canonicalKey = key;
