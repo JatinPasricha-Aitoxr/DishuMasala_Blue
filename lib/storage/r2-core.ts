@@ -17,12 +17,23 @@ const accessKeyId = process.env.R2_ACCESS_KEY_ID;
 const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
 const bucket = process.env.R2_BUCKET;
 const publicBaseUrl = process.env.R2_PUBLIC_BASE_URL;
+/**
+ * Optional override for the S3-compatible endpoint. Local dev/test points this at the MinIO
+ * substitute (see docs/LOCAL-R2.md and the "Local R2 (MinIO)" README section) — e.g.
+ * `http://localhost:9010` — instead of the real `https://<accountId>.r2.cloudflarestorage.com`.
+ * Any real deploy leaves this unset and gets the genuine R2 endpoint. `R2_FORCE_PATH_STYLE=1`
+ * goes with it: MinIO (and most non-R2 S3-compatible stores) need path-style addressing
+ * (`http://host/bucket/key`) rather than R2/AWS's virtual-hosted style (`http://bucket.host/key`).
+ */
+const endpointOverride = process.env.R2_ENDPOINT;
+const forcePathStyle = process.env.R2_FORCE_PATH_STYLE === "1";
 
 function assertConfigured(): void {
-  if (!accountId || !accessKeyId || !secretAccessKey || !bucket || !publicBaseUrl) {
+  if (!accessKeyId || !secretAccessKey || !bucket || !publicBaseUrl || (!accountId && !endpointOverride)) {
     throw new Error(
-      "R2 is not configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, " +
-        "R2_BUCKET and R2_PUBLIC_BASE_URL (see .env.example).",
+      "R2 is not configured. Set R2_ACCOUNT_ID (or R2_ENDPOINT for a local/self-hosted " +
+        "S3-compatible substitute), R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET and " +
+        "R2_PUBLIC_BASE_URL (see .env.example).",
     );
   }
 }
@@ -34,7 +45,8 @@ function getClient(): S3Client {
   if (!cachedClient) {
     cachedClient = new S3Client({
       region: "auto",
-      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      endpoint: endpointOverride || `https://${accountId}.r2.cloudflarestorage.com`,
+      forcePathStyle,
       credentials: { accessKeyId: accessKeyId!, secretAccessKey: secretAccessKey! },
     });
   }
