@@ -61,7 +61,8 @@ export async function POST(req: Request): Promise<NextResponse> {
     // react to capture/failure per the current scope (CLAUDE.md §7.1).
 
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (err) {
+    console.error("[payment/webhook] unhandled error", err);
     return NextResponse.json({ ok: false, error: { code: "internal_error", message: "Webhook processing failed." } }, { status: 500 });
   }
 }

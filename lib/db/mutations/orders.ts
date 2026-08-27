@@ -8,9 +8,23 @@ import type { PricingResult } from "@/lib/commerce/pricing";
 import type { OrderAddress } from "@/types/order";
 
 /** Postgres unique-violation error code (23505) — used to detect a concurrent double-submit
- * racing on `orders_idempotency_key_uniq` or `orders_razorpay_payment_id_uniq`. */
+ * racing on `orders_idempotency_key_uniq` or `orders_razorpay_payment_id_uniq`. Drizzle wraps the
+ * underlying `pg` error in its own `Error` with the real driver error attached as `.cause`, so
+ * both the top-level and the `.cause` object are checked for the code. */
+function pgErrorCode(err: unknown): string | undefined {
+  if (typeof err !== "object" || err === null) return undefined;
+  const direct = (err as { code?: unknown }).code;
+  if (typeof direct === "string") return direct;
+  const cause = (err as { cause?: unknown }).cause;
+  if (typeof cause === "object" && cause !== null) {
+    const nested = (cause as { code?: unknown }).code;
+    if (typeof nested === "string") return nested;
+  }
+  return undefined;
+}
+
 function isUniqueViolation(err: unknown): boolean {
-  return typeof err === "object" && err !== null && "code" in err && (err as { code?: string }).code === "23505";
+  return pgErrorCode(err) === "23505";
 }
 
 export interface CreateOrderInput {

@@ -45,7 +45,8 @@ export async function POST(req: Request): Promise<NextResponse> {
       defaultPricingDeps,
     );
     return NextResponse.json({ ok: true, pricing });
-  } catch {
+  } catch (err) {
+    console.error("[cart/validate] unhandled error", err);
     // Never a raw stack trace to the client (CLAUDE.md §12).
     return NextResponse.json(
       { ok: false, error: { code: "internal_error", message: "Could not price your cart right now. Please try again." } },

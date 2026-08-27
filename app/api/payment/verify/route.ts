@@ -66,7 +66,8 @@ export async function POST(req: Request): Promise<NextResponse> {
     }
 
     return NextResponse.json({ ok: true, orderNumber: order.orderNumber });
-  } catch {
+  } catch (err) {
+    console.error("[payment/verify] unhandled error", err);
     return NextResponse.json(
       { ok: false, error: { code: "internal_error", message: "Something went wrong confirming your payment." } },
       { status: 500 },

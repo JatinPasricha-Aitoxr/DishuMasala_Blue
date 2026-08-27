@@ -199,8 +199,9 @@ export async function POST(req: Request): Promise<NextResponse> {
         message: "We couldn't start your payment right now. Please try again, or choose Cash on Delivery.",
       });
     }
-  } catch {
-    // Never a raw stack trace to the client (CLAUDE.md §12).
+  } catch (err) {
+    // Logged server-side only — never a raw stack trace to the client (CLAUDE.md §12).
+    console.error("[checkout] unhandled error", err);
     return errorResponse(500, { code: "internal_error", message: "Something went wrong placing your order. Please try again." });
   }
 }
