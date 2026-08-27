@@ -8,9 +8,11 @@ export interface ClassicAssamStripProps {
 
 /**
  * Classic & Assam — deliberately lower visual weight than every section above it (PRD §5.1 / Phase
- * 2 build note): a smaller heading with no eyebrow, a quiet `surface-2` band instead of white, a
- * narrower-card carousel instead of a full grid, and tighter vertical padding. Still real DB data —
- * no name, price or image is hardcoded here.
+ * 2 build note): a smaller heading with no eyebrow, a quiet `surface-2` band, and tighter vertical
+ * padding. Cards are ProductCarousel's standard size (client request: exactly the same card
+ * dimensions across every homepage section, no per-section override) — the "lower weight" here
+ * comes entirely from the surrounding chrome, not a smaller card. Still real DB data — no name,
+ * price or image is hardcoded here.
  */
 export function ClassicAssamStrip({ products }: ClassicAssamStripProps) {
   if (products.length === 0) return null;
@@ -24,7 +26,7 @@ export function ClassicAssamStrip({ products }: ClassicAssamStripProps) {
         <p className="mt-1 text-sm text-ink-2">{HOME_COPY.classicAssam.body}</p>
 
         <div className="mt-6">
-          <ProductCarousel products={products} label="Classic & Assam products" cardWidthClassName="w-36 sm:w-48" />
+          <ProductCarousel products={products} label="Classic & Assam products" />
         </div>
       </div>
     </section>

@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerTitle, DrawerTrigger } from "@/components/ui/Drawer";
-import { GRADIENT_TILE_SLUGS, type MegaMenuColumn } from "@/lib/nav";
+import type { MegaMenuColumn } from "@/lib/nav";
 import { cn } from "@/lib/cn";
 import { formatINR, type Paise } from "@/lib/money";
 import type { SiteBranding } from "@/lib/db/queries/settings";
@@ -121,10 +122,19 @@ function IconCountButton({
   );
 }
 
+// Client-directed nav order (2026-08-28) — Spices before Combos, matching the same swap already
+// made to the homepage's own section order. This is deliberately NOT `collections.priority`
+// (Combos=4, Spices=5) — it's a nav-specific display order, the same kind of homepage-template
+// exception PRD §5.1 already established for Classic & Assam.
+const NAV_ORDER = ["blue-tea", "red-tea", "classic-teas", "spices", "combos"];
+
 export function HeaderClient({ columns, freeShippingThresholdPaise, logo }: HeaderClientProps) {
-  // Flat, priority-ordered list for the always-visible desktop nav — see the comment at its call
-  // site for why this flattens `columns` rather than fetching a second shape.
-  const flatCollectionLinks = columns.flatMap((col) => col.items);
+  const pathname = usePathname();
+  // Flat list for the always-visible desktop nav, sorted to NAV_ORDER — see the comment at its
+  // call site for why this flattens `columns` rather than fetching a second shape from the DB.
+  const flatCollectionLinks = [...columns.flatMap((col) => col.items)].sort(
+    (a, b) => NAV_ORDER.indexOf(a.slug) - NAV_ORDER.indexOf(b.slug),
+  );
 
   const cartCount = useCartStore(selectItemCount);
   const openCart = useCartStore((s) => s.open);
@@ -239,24 +249,34 @@ export function HeaderClient({ columns, freeShippingThresholdPaise, logo }: Head
               Flattened from `columns` (still DB-priority-ordered — CLAUDE.md §7.2) rather than
               adding a second data shape; the "Teas" grouping only mattered for the old dropdown's
               column layout. */}
-          <nav aria-label="Collections" className="ml-2 hidden items-center gap-1 lg:flex">
-            {flatCollectionLinks.map((item) => (
-              <Link
-                key={item.slug}
-                href={`/collections/${item.slug}/`}
-                className="flex items-center gap-1.5 rounded-sm px-3 py-2 text-sm font-semibold text-ink hover:bg-surface-2"
-              >
-                {GRADIENT_TILE_SLUGS.has(item.slug) && (
-                  <span
-                    aria-hidden="true"
-                    className="size-3 shrink-0 rounded-[3px]"
-                    style={{ backgroundImage: "var(--gradient-lemon-shift)" }}
-                  />
-                )}
-                {item.title}
-              </Link>
-            ))}
-            <Link href="/shop/" className="rounded-sm px-3 py-2 text-sm font-semibold text-ink-2 hover:bg-surface-2 hover:text-ink">
+          <nav aria-label="Collections" className="ml-2 hidden items-center gap-0.5 lg:flex">
+            {flatCollectionLinks.map((item) => {
+              const isActive = pathname === `/collections/${item.slug}`;
+              return (
+                <Link
+                  key={item.slug}
+                  href={`/collections/${item.slug}/`}
+                  aria-current={isActive ? "page" : undefined}
+                  className={cn(
+                    "relative rounded-full px-4 py-2 text-sm font-semibold tracking-[-0.005em] transition-colors duration-150",
+                    isActive ? "text-brew-2" : "text-ink hover:bg-surface-2",
+                  )}
+                >
+                  {item.title}
+                  {isActive && (
+                    <span aria-hidden="true" className="absolute inset-x-4 -bottom-0.5 h-[2px] rounded-full bg-brew-2" />
+                  )}
+                </Link>
+              );
+            })}
+            <Link
+              href="/shop/"
+              aria-current={pathname === "/shop" ? "page" : undefined}
+              className={cn(
+                "rounded-full px-4 py-2 text-sm font-semibold tracking-[-0.005em] transition-colors duration-150",
+                pathname === "/shop" ? "text-brew-2" : "text-ink-2 hover:bg-surface-2 hover:text-ink",
+              )}
+            >
               All products
             </Link>
           </nav>
@@ -326,13 +346,6 @@ export function HeaderClient({ columns, freeShippingThresholdPaise, logo }: Head
                           href={`/collections/${item.slug}/`}
                           className="flex items-center gap-2 py-1.5 text-[0.95rem] font-medium text-ink-2"
                         >
-                          {GRADIENT_TILE_SLUGS.has(item.slug) && (
-                            <span
-                              aria-hidden="true"
-                              className="size-4 shrink-0 rounded-[3px]"
-                              style={{ backgroundImage: "var(--gradient-lemon-shift)" }}
-                            />
-                          )}
                           {item.title}
                         </Link>
                       </DrawerClose>

@@ -34,7 +34,7 @@ export function RedTeaSection({ products, lifestyleImage }: RedTeaSectionProps) 
         )}
         <div className="flex min-w-0 flex-col gap-6">
           <SectionHeading id="red-tea-heading" eyebrow={copy.eyebrow} heading={copy.heading} body={copy.body} tone="light" />
-          <ProductCarousel products={products} label="Red Tea products" cardWidthClassName="w-[46%] sm:w-56" />
+          <ProductCarousel products={products} label="Red Tea products" />
         </div>
       </div>
     </section>

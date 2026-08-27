@@ -9,8 +9,12 @@ export interface ProductCarouselProps {
   products: ProductCardData[];
   /** aria-label for the scrollable region — should describe what's in it (e.g. "Blue Tea products"). */
   label: string;
-  /** Tailwind width classes for each card. Defaults to a size that shows ~2 cards per row on
-   *  mobile and scales up on larger screens. */
+  /** Tailwind width classes for each card. Every homepage carousel call site deliberately uses
+   * the same default (client request: "product card dimensions should be exactly same for all
+   * sections") — don't override this per section; if a genuinely different size is ever needed,
+   * change the default here so every section stays in sync, rather than letting sections drift
+   * apart one override at a time (they had: 46%/64, 46%/56, 36/48, and the 72%/64 default, four
+   * different sizes across five sections, before this was consolidated). */
   cardWidthClassName?: string;
   /** Pre-rendered overlay per card (e.g. ComboValue's "Save ₹X vs. separately" badge), keyed by
    * product slug — a plain object of already-rendered elements, not a render function: this
@@ -37,7 +41,7 @@ export interface ProductCarouselProps {
  * scroll" discipline for the shop grid applies in spirit here too: don't fake scale that isn't
  * there yet).
  */
-export function ProductCarousel({ products, label, cardWidthClassName = "w-[72%] sm:w-64", badgeBySlug }: ProductCarouselProps) {
+export function ProductCarousel({ products, label, cardWidthClassName = "w-[46%] sm:w-64", badgeBySlug }: ProductCarouselProps) {
   const trackRef = useRef<HTMLUListElement>(null);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
