@@ -26,7 +26,10 @@ interface RateLimitRule {
  * independently against the same rule — either one tripping is enough to reject. */
 const RULES: Record<RateLimitAction, RateLimitRule> = {
   login: { windowMinutes: 15, maxAttempts: 10 },
-  register: { windowMinutes: 60, maxAttempts: 5 },
+  // Looser than login/reset: registration abuse (mass account creation) is a lower-severity
+  // threat than credential stuffing, and this ceiling has to tolerate many real signups sharing
+  // one IP (NAT, offices, campuses) without false-positiving legitimate traffic.
+  register: { windowMinutes: 60, maxAttempts: 20 },
   reset_request: { windowMinutes: 60, maxAttempts: 5 },
   reset_confirm: { windowMinutes: 60, maxAttempts: 10 },
   guest_order_lookup: { windowMinutes: 15, maxAttempts: 10 },

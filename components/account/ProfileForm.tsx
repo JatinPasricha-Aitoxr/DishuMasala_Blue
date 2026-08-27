@@ -51,8 +51,10 @@ export function ProfileForm({ initialName, initialPhone, email }: { initialName:
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-ink">Email</label>
-        <Input value={email} disabled readOnly />
+        <label htmlFor="profile-email" className="mb-1.5 block text-sm font-medium text-ink">
+          Email
+        </label>
+        <Input id="profile-email" value={email} disabled readOnly />
         <button
           type="button"
           className="mt-1 text-xs font-medium text-ink-2 underline underline-offset-4 hover:text-ink disabled:opacity-50"
