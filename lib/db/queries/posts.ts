@@ -1,0 +1,124 @@
+import "server-only";
+
+import { and, desc, eq, inArray, lte, or, sql } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
+import { db } from "../index";
+import { posts, products, productImages } from "../schema";
+import { parseTiptapDoc } from "@/lib/content/tiptap-schema";
+
+export interface PostSummary {
+  id: number;
+  slug: string;
+  kind: "blog" | "recipe";
+  title: string;
+  excerpt: string | null;
+  coverUrl: string | null;
+  author: string | null;
+  publishedAt: Date;
+}
+
+/** Published-and-due posts only: `status = 'published'` AND `published_at <= now()` — a future
+ * `published_at` is exactly PROMPTS.md's "scheduled" state (set by publishPostDb) and must not be
+ * publicly visible before its time. */
+async function fetchPublishedPosts(kind?: "blog" | "recipe"): Promise<PostSummary[]> {
+  const conditions = [eq(posts.status, "published"), lte(posts.publishedAt, new Date())];
+  if (kind) conditions.push(eq(posts.kind, kind));
+
+  const rows = await db
+    .select({ id: posts.id, slug: posts.slug, kind: posts.kind, title: posts.title, excerpt: posts.excerpt, coverR2Key: posts.coverR2Key, author: posts.author, publishedAt: posts.publishedAt })
+    .from(posts)
+    .where(and(...conditions))
+    .orderBy(desc(posts.publishedAt));
+
+  const { publicUrl } = await import("@/lib/storage/r2");
+  return rows.map((r) => ({
+    id: r.id,
+    slug: r.slug,
+    kind: r.kind,
+    title: r.title,
+    excerpt: r.excerpt,
+    coverUrl: r.coverR2Key ? publicUrl(r.coverR2Key) : null,
+    author: r.author,
+    publishedAt: r.publishedAt!,
+  }));
+}
+
+export async function getPublishedPosts(kind?: "blog" | "recipe"): Promise<PostSummary[]> {
+  return unstable_cache(() => fetchPublishedPosts(kind), ["published-posts", kind ?? "all"], { tags: ["posts"] })();
+}
+
+export interface PostDetail extends PostSummary {
+  body: ReturnType<typeof parseTiptapDoc>;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  relatedProductIds: number[];
+}
+
+async function fetchPublishedPostBySlug(slug: string, kind: "blog" | "recipe"): Promise<PostDetail | null> {
+  const [row] = await db
+    .select()
+    .from(posts)
+    .where(and(eq(posts.slug, slug), eq(posts.kind, kind), eq(posts.status, "published"), lte(posts.publishedAt, new Date())))
+    .limit(1);
+  if (!row) return null;
+
+  const { publicUrl } = await import("@/lib/storage/r2");
+  return {
+    id: row.id,
+    slug: row.slug,
+    kind: row.kind,
+    title: row.title,
+    excerpt: row.excerpt,
+    coverUrl: row.coverR2Key ? publicUrl(row.coverR2Key) : null,
+    author: row.author,
+    publishedAt: row.publishedAt!,
+    body: parseTiptapDoc(row.body),
+    seoTitle: row.seoTitle,
+    seoDescription: row.seoDescription,
+    relatedProductIds: row.relatedProductIds,
+  };
+}
+
+export async function getPublishedPostBySlug(slug: string, kind: "blog" | "recipe"): Promise<PostDetail | null> {
+  return unstable_cache(() => fetchPublishedPostBySlug(slug, kind), ["published-post", kind, slug], { tags: ["posts", `post:${slug}`] })();
+}
+
+export interface RelatedProductCard {
+  id: number;
+  slug: string;
+  name: string;
+  imageUrl: string | null;
+  imageAlt: string | null;
+}
+
+/**
+ * Related products by shared tags (PROMPTS.md Phase 8 item 7) — reuses the product `tags` array
+ * the same way the PDP's own "related products" does, plus any explicit `related_product_ids` on
+ * the post itself. Falls back gracefully to an empty list rather than guessing.
+ */
+export async function getRelatedProductsForPost(relatedProductIds: number[], tags: string[]): Promise<RelatedProductCard[]> {
+  const conditions = [eq(products.status, "published")];
+  const idOrTag = [];
+  if (relatedProductIds.length) idOrTag.push(inArray(products.id, relatedProductIds));
+  if (tags.length) idOrTag.push(sql`${products.tags} && ${tags}`);
+  if (idOrTag.length === 0) return [];
+
+  const rows = await db
+    .select({ id: products.id, slug: products.slug, name: products.name })
+    .from(products)
+    .where(and(...conditions, or(...idOrTag)))
+    .limit(4);
+
+  if (rows.length === 0) return [];
+  const { publicUrl } = await import("@/lib/storage/r2");
+  const images = await db
+    .select()
+    .from(productImages)
+    .where(and(inArray(productImages.productId, rows.map((r) => r.id)), eq(productImages.isPrimary, true)));
+  const imageByProduct = new Map(images.map((i) => [i.productId, i]));
+
+  return rows.map((r) => {
+    const img = imageByProduct.get(r.id);
+    return { id: r.id, slug: r.slug, name: r.name, imageUrl: img ? publicUrl(img.r2Key) : null, imageAlt: img?.alt ?? null };
+  });
+}
