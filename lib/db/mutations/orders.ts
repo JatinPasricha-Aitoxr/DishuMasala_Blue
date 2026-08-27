@@ -230,6 +230,13 @@ export async function markOrderPaymentFailed(orderId: number): Promise<{ ok: tru
   });
 }
 
+/** Writes back a successful Shiprocket push (lib/shiprocket.ts#pushOrderToShiprocket). Left
+ * uncalled on a `needs_retry` result — the order's `shiprocket_order_id` simply stays null, which
+ * is itself the "outstanding, needs retry" signal (see that function's doc comment). */
+export async function attachShiprocketOrderId(orderId: number, shiprocketOrderId: string): Promise<void> {
+  await db.update(orders).set({ shiprocketOrderId, updatedAt: new Date() }).where(eq(orders.id, orderId));
+}
+
 export async function recordCouponRedemption(couponCode: string, orderId: number, userId: number): Promise<void> {
   const [couponRow] = await db.select({ id: coupons.id }).from(coupons).where(eq(coupons.code, couponCode)).limit(1);
   if (!couponRow) return;
