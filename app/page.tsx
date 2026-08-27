@@ -15,12 +15,13 @@ import { NewsletterSection } from "@/components/sections/NewsletterSection";
 
 /**
  * The homepage (Phase 2 / PROMPTS.md, replacing Phase 0's plain-text DB proof page). Section order
- * follows CLAUDE.md §7.2's priority rule ("Blue Tea first. Then Red Tea. Then everything else") and
- * PRD.md §5.1's homepage template: hero, then the two priority-1/2 collections get the top two
- * slots, then Combo Packs and Spices (which drive average order value — PRD §1's #2 business goal),
- * then Classic & Assam deliberately last and visually quietest despite outranking Combos/Spices on
- * `priority` — PRD §5.1 item 7 calls this out explicitly as a homepage-template exception, not an
- * oversight; `/shop`'s default sort (Phase 3) uses the unmodified `priority` order everywhere else.
+ * follows CLAUDE.md §7.2's priority rule ("Blue Tea first. Then Red Tea. Then everything else") for
+ * the top two slots; below that it's a client-directed homepage template, not the raw `priority`
+ * order — `/shop`'s default sort (Phase 3) uses the unmodified `priority` order everywhere else.
+ * Spices now renders before Combo Packs (2026-08-28 client request: "before the Combo Packs
+ * section we need a section for Masala/spices, then combo section") even though Combos outranks
+ * Spices on `priority` — the same kind of deliberate homepage-template exception PRD §5.1 item 7
+ * already established for Classic & Assam running last despite its own higher `priority`.
  *
  * Every product/collection value below is read from Postgres via lib/db/queries/* — nothing in this
  * file or components/sections/* hardcodes a name, price or image URL.
@@ -61,8 +62,8 @@ export default async function Home() {
         <RedTeaSection products={redTea} lifestyleImage={redTeaLifestyle} />
       </ScrollColorBand>
       <PromoBannerSlider banners={redTeaBanner} ariaLabel="Red Tea promotion" />
-      <ComboValue combos={combos} spices={spices} />
       <SpicesGrid products={spices} />
+      <ComboValue combos={combos} spices={spices} />
       <ClassicAssamStrip products={classicAssam} />
       <RitualTeaser />
       <ReviewsEmptyState />
