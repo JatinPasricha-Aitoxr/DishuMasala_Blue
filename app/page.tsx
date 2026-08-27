@@ -1,6 +1,6 @@
 import { getCollectionsWithStats } from "@/lib/db/queries/collections";
 import { getPublishedProductsByCollectionSlug } from "@/lib/db/queries/products";
-import { getHomepageBanners } from "@/lib/db/queries/settings";
+import { getHomepageBanners, getRedTeaSectionBanner } from "@/lib/db/queries/settings";
 import { PromoBannerSlider } from "@/components/hero/PromoBannerSlider";
 import { TrustStrip } from "@/components/layout/TrustStrip";
 import { BlueTeaBand } from "@/components/sections/BlueTeaBand";
@@ -25,7 +25,7 @@ import { NewsletterSection } from "@/components/sections/NewsletterSection";
  * file or components/sections/* hardcodes a name, price or image URL.
  */
 export default async function Home() {
-  const [collections, blueTea, redTea, combos, spices, classicAssam, banners] = await Promise.all([
+  const [collections, blueTea, redTea, combos, spices, classicAssam, banners, redTeaBanner] = await Promise.all([
     getCollectionsWithStats(),
     getPublishedProductsByCollectionSlug("blue-tea"),
     getPublishedProductsByCollectionSlug("red-tea"),
@@ -33,6 +33,7 @@ export default async function Home() {
     getPublishedProductsByCollectionSlug("spices"),
     getPublishedProductsByCollectionSlug("classic-teas"),
     getHomepageBanners(),
+    getRedTeaSectionBanner(),
   ]);
 
   // The one part of CLAUDE.md §7.2 this file's fixed section order can't re-derive on its own is
@@ -55,6 +56,7 @@ export default async function Home() {
       <TrustStrip />
       <BlueTeaBand products={blueTea} />
       <RedTeaSection products={redTea} />
+      <PromoBannerSlider banners={redTeaBanner} ariaLabel="Red Tea promotion" />
       <ComboValue combos={combos} spices={spices} />
       <SpicesGrid products={spices} />
       <ClassicAssamStrip products={classicAssam} />

@@ -68,7 +68,7 @@ export function ProductCarousel({ products, label, cardWidthClassName = "w-[72%]
   }
 
   return (
-    <div className="relative">
+    <div className="relative min-w-0">
       <ul
         ref={trackRef}
         role="region"

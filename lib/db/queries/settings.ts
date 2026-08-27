@@ -133,16 +133,26 @@ export interface HomepageBannerRow {
 
 export type HomepageBanner = HomepageBannerRow & { url: string };
 
-/** The client-supplied homepage promotional slider (scripts/migrate-homepage-banners.ts) — an
- * explicit, logged exception to CLAUDE.md §8's "invent nothing"/no-health-claims rule, since
- * these images carry the client's own marketing text baked into the pixels. See that script's
- * header comment and CLAUDE.md §8 for the full note. Empty array if the script hasn't been run
- * yet — callers must render nothing rather than a broken slider. */
-export async function getHomepageBanners(): Promise<HomepageBanner[]> {
-  const [row] = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, "homepage_banners")).limit(1);
+/** Shared reader for any banner-set settings row (scripts/_lib/banner-migrate.ts writes this same
+ * shape) — an explicit, logged exception to CLAUDE.md §8's "invent nothing"/no-health-claims rule,
+ * since these images carry the client's own marketing text baked into the pixels (see the
+ * matching migrate script's header comment and CLAUDE.md §8's 2026-08-28 note). Empty array if the
+ * script hasn't been run yet — callers must render nothing rather than a broken slider/section. */
+async function getBannerSet(settingsKey: string): Promise<HomepageBanner[]> {
+  const [row] = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, settingsKey)).limit(1);
   const value = row?.value as HomepageBannerRow[] | undefined;
   if (!Array.isArray(value)) return [];
   return value.map((banner) => ({ ...banner, url: publicUrl(banner.r2Key) }));
+}
+
+/** The homepage promotional slider (scripts/migrate-homepage-banners.ts). */
+export async function getHomepageBanners(): Promise<HomepageBanner[]> {
+  return getBannerSet("homepage_banners");
+}
+
+/** The banner shown right after the homepage's Red Tea section (scripts/migrate-red-tea-banner.ts). */
+export async function getRedTeaSectionBanner(): Promise<HomepageBanner[]> {
+  return getBannerSet("red_tea_section_banner");
 }
 
 /** Every settings row the admin settings page (Phase 7 item 6) reads and edits, in one round

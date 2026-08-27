@@ -13,20 +13,8 @@
  *
  * Run with: pnpm migrate-homepage-banners
  */
-import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import { buildKey, putObject } from "../lib/storage/r2-core";
-import { processImage } from "../lib/storage/images";
-import { closeScriptDb, scriptDb } from "../lib/db/script-client";
-import { settings } from "../lib/db/schema";
-
-interface BannerSource {
-  slot: string;
-  file: string;
-  alt: string;
-  href: string;
-}
+import { closeScriptDb } from "../lib/db/script-client";
+import { migrateBannerSet, type BannerSource } from "./_lib/banner-migrate";
 
 const BANNERS: BannerSource[] = [
   {
@@ -37,59 +25,7 @@ const BANNERS: BannerSource[] = [
   },
 ];
 
-async function migrateOne(banner: BannerSource): Promise<{
-  slot: string;
-  r2Key: string;
-  width: number;
-  height: number;
-  alt: string;
-  href: string;
-}> {
-  const buffer = readFileSync(join(process.cwd(), "data/banners", banner.file));
-  const processed = await processImage(buffer);
-  // Content hash (not a fixed "current" slug) so swapping a banner's source image gives every
-  // derivative a brand-new key/URL — otherwise the browser and Next's own image-optimizer cache
-  // keep serving the previous picture forever under the unchanged URL, exactly the bug this fixed.
-  const hash = createHash("sha256").update(buffer).digest("hex").slice(0, 16);
-
-  let canonicalKey: string | null = null;
-  let canonicalWidth = 0;
-  let canonicalHeight = 0;
-
-  for (const derivative of processed.derivatives) {
-    const key = buildKey("banners", banner.slot, hash, derivative.format, `w${derivative.width}`);
-    await putObject(key, derivative.buffer, `image/${derivative.format}`);
-    if (derivative.format === "webp" && derivative.width >= canonicalWidth) {
-      canonicalKey = key;
-      canonicalWidth = derivative.width;
-      canonicalHeight = derivative.height;
-    }
-  }
-
-  if (!canonicalKey) throw new Error(`${banner.slot}: no webp derivative produced`);
-  console.log(`[uploaded] ${banner.slot}: ${banner.file} -> ${canonicalKey} (${canonicalWidth}x${canonicalHeight})`);
-  return {
-    slot: banner.slot,
-    r2Key: canonicalKey,
-    width: canonicalWidth,
-    height: canonicalHeight,
-    alt: banner.alt,
-    href: banner.href,
-  };
-}
-
-async function main(): Promise<void> {
-  const uploaded = await Promise.all(BANNERS.map(migrateOne));
-
-  await scriptDb
-    .insert(settings)
-    .values({ key: "homepage_banners", value: uploaded })
-    .onConflictDoUpdate({ target: settings.key, set: { value: uploaded } });
-
-  console.log(`settings.homepage_banners upserted (${uploaded.length} banners).`);
-}
-
-main()
+migrateBannerSet("homepage_banners", BANNERS)
   .catch((err) => {
     console.error(err);
     process.exitCode = 1;

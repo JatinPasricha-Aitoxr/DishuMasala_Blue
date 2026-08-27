@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { ProductCarousel } from "@/components/product/ProductCarousel";
-import { Placeholder } from "@/components/media/Placeholder";
 import { ScrollColorBand } from "./ScrollColorBand";
 import { HOME_COPY } from "@/content/home";
 import type { ProductCardData } from "@/types/catalog";
@@ -28,7 +27,7 @@ export function BlueTeaBand({ products }: BlueTeaBandProps) {
   return (
     <ScrollColorBand fromVar="--color-brew-2" toVar="--color-brew-5" className="w-full">
       <section aria-labelledby="blue-tea-heading" className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-16 lg:py-24">
-        <div className="flex flex-col gap-5">
+        <div className="flex min-w-0 flex-col gap-5">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/80">{copy.eyebrow}</p>
           <h2
             id="blue-tea-heading"
@@ -46,8 +45,7 @@ export function BlueTeaBand({ products }: BlueTeaBandProps) {
           </div>
         </div>
 
-        <div className="flex flex-col gap-4">
-          <Placeholder slot="blue-tea-band-editorial" className="rounded-lg" />
+        <div className="min-w-0">
           <ProductCarousel products={products} label="Blue Tea products" />
         </div>
       </section>

@@ -37,6 +37,11 @@ export interface ScrollColorBandProps {
  * `fromVar` to `toVar`. Two sections using matching endpoints (this one's `toVar` = the next one's
  * `fromVar`) read as one continuous colour journey down the page.
  *
+ * Renders a two-stop gradient (sampling slightly behind and ahead of `t`), not a flat fill — the
+ * two colours visibly blend into each other at every scroll position (client request: "pink and
+ * red should also gradiently mix"), the same way the two sections' matching endpoints blend across
+ * the section boundary.
+ *
  * `prefers-reduced-motion: reduce` renders a static, finished `fromVar` background instead of
  * tracking scroll (CLAUDE.md §5.5) — a real, intentional brand colour, not a broken/frozen mid-tween
  * state.
@@ -53,6 +58,7 @@ export function ScrollColorBand({ fromVar, toVar, children, className }: ScrollC
     const from = hexToRgb(style.getPropertyValue(fromVar));
     const to = hexToRgb(style.getPropertyValue(toVar));
 
+    const SPREAD = 0.22;
     let ticking = false;
     const update = () => {
       const rect = el.getBoundingClientRect();
@@ -60,7 +66,9 @@ export function ScrollColorBand({ fromVar, toVar, children, className }: ScrollC
       const total = Math.max(1, rect.height + vh);
       const scrolled = vh - rect.top;
       const t = Math.max(0, Math.min(1, scrolled / total));
-      el.style.backgroundColor = lerpRgb(from, to, t);
+      const near = lerpRgb(from, to, Math.max(0, t - SPREAD));
+      const far = lerpRgb(from, to, Math.min(1, t + SPREAD));
+      el.style.backgroundImage = `linear-gradient(100deg, ${near}, ${far})`;
     };
     const onScroll = () => {
       if (ticking) return;

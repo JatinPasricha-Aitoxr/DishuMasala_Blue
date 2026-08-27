@@ -17,8 +17,12 @@ const AUTOPLAY_MS = 6000;
  *
  * The first thing on the homepage (app/page.tsx) — the animated Lemon Shift hero that used to sit
  * below this was removed at the client's request; this slider is now the top of the page.
+ *
+ * Reused as-is (via `ariaLabel`) for the single-image Red Tea section banner — it already renders
+ * correctly with exactly one banner (no dots/arrows/autoplay, since those all gate on
+ * `banners.length > 1`), so there was no need for a second component.
  */
-export function PromoBannerSlider({ banners }: { banners: HomepageBanner[] }) {
+export function PromoBannerSlider({ banners, ariaLabel = "Promotions" }: { banners: HomepageBanner[]; ariaLabel?: string }) {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(
@@ -64,7 +68,7 @@ export function PromoBannerSlider({ banners }: { banners: HomepageBanner[] }) {
   }
 
   return (
-    <section aria-roledescription="carousel" aria-label="Promotions" className="w-full bg-bg py-6 sm:py-8">
+    <section aria-roledescription="carousel" aria-label={ariaLabel} className="w-full bg-bg py-6 sm:py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div
           ref={containerRef}
