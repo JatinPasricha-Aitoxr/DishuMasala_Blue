@@ -29,10 +29,13 @@ export const HOME_COPY = {
 
   redTea: {
     eyebrow: "Red Tea",
-    heading: "Ruby-red, hibiscus-led.",
+    heading: "Ruby-red. Hibiscus-led. Naturally vibrant.",
     body:
-      "Red Tea steeps hibiscus and rose petals with holy basil and ginger into a bright, ruby-red " +
-      "cup — mildly tart, floral, and naturally caffeine-free. Loose leaf or teabags.",
+      "A beautiful infusion of hibiscus and delicate rose petals, balanced with the warming notes " +
+      "of holy basil and ginger. Red Tea brews into a naturally ruby-red cup with a refreshing " +
+      "tartness, soft floral character, and a gentle hint of spice. Bright • Floral • Mildly Tart " +
+      "• Caffeine-Free. Available in loose leaf and convenient teabags, it's an easy, refreshing " +
+      "ritual to enjoy any time of day.",
     ctaLabel: "Shop Red Tea",
     ctaHref: "/collections/red-tea/",
   },
