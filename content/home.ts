@@ -44,10 +44,14 @@ export const HOME_COPY = {
 
   combos: {
     eyebrow: "Combo Packs",
-    heading: "Pantry sets, priced to save",
-    body:
-      "The spices you reach for together, packed together — for less than buying each one on its " +
-      "own.",
+    heading: "Your Everyday Spices, Together.",
+    body: [
+      "The essentials you reach for most, thoughtfully paired and packed into convenient sets — " +
+        "giving you more value than buying each spice separately.",
+      "From everyday cooking to flavour-packed favourites, our combo packs make it easier to " +
+        "stock your pantry and smarter to save.",
+      "Curated Together • Better Value • Pantry Ready",
+    ],
   },
 
   spices: {

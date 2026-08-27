@@ -1,6 +1,5 @@
-import { ProductCard } from "@/components/product/ProductCard";
+import { ProductCarousel } from "@/components/product/ProductCarousel";
 import { SectionHeading } from "./SectionHeading";
-import { toProductCardProps } from "@/lib/product-card";
 import { computeComboSavingPaise } from "@/lib/combo-savings";
 import { formatINR } from "@/lib/money";
 import { HOME_COPY } from "@/content/home";
@@ -16,6 +15,21 @@ export interface ComboValueProps {
 export function ComboValue({ combos, spices }: ComboValueProps) {
   if (combos.length === 0) return null;
 
+  // Built server-side, as a plain object of already-rendered elements — ProductCarousel is a
+  // Client Component, and a render function can't cross that boundary as a prop (only Server
+  // Actions can serialize that way); a map of finished JSX keyed by slug can.
+  const badgeBySlug: Record<string, React.ReactNode> = {};
+  for (const combo of combos) {
+    const savingPaise = computeComboSavingPaise(combo, spices);
+    if (savingPaise != null) {
+      badgeBySlug[combo.slug] = (
+        <span className="absolute left-2.5 top-2.5 z-20 rounded-sm bg-ink px-2 py-1 text-xs font-semibold tabular-nums text-surface shadow-card">
+          Save {formatINR(savingPaise)} vs. separately
+        </span>
+      );
+    }
+  }
+
   return (
     <section aria-labelledby="combos-heading" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:py-20">
       <SectionHeading
@@ -25,21 +39,9 @@ export function ComboValue({ combos, spices }: ComboValueProps) {
         body={HOME_COPY.combos.body}
         accentClassName="text-ink-2"
       />
-      <ul className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4">
-        {combos.map((combo) => {
-          const savingPaise = computeComboSavingPaise(combo, spices);
-          return (
-            <li key={combo.slug} className="relative">
-              {savingPaise != null && (
-                <span className="absolute left-2.5 top-2.5 z-20 rounded-sm bg-ink px-2 py-1 text-xs font-semibold tabular-nums text-surface shadow-card">
-                  Save {formatINR(savingPaise)} vs. separately
-                </span>
-              )}
-              <ProductCard {...toProductCardProps(combo)} />
-            </li>
-          );
-        })}
-      </ul>
+      <div className="mt-10">
+        <ProductCarousel products={combos} label="Combo Packs" badgeBySlug={badgeBySlug} />
+      </div>
     </section>
   );
 }

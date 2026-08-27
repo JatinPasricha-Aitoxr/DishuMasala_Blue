@@ -1,8 +1,7 @@
 import Image from "next/image";
-import { ProductCard } from "@/components/product/ProductCard";
+import { ProductCarousel } from "@/components/product/ProductCarousel";
 import { Placeholder } from "@/components/media/Placeholder";
 import { SectionHeading } from "./SectionHeading";
-import { toProductCardProps } from "@/lib/product-card";
 import { HOME_COPY } from "@/content/home";
 import type { ProductCardData } from "@/types/catalog";
 import type { SectionImage } from "@/lib/db/queries/settings";
@@ -35,15 +34,7 @@ export function RedTeaSection({ products, lifestyleImage }: RedTeaSectionProps) 
         )}
         <div className="flex min-w-0 flex-col gap-6">
           <SectionHeading id="red-tea-heading" eyebrow={copy.eyebrow} heading={copy.heading} body={copy.body} tone="light" />
-          {products.length > 0 && (
-            <ul className="grid grid-cols-2 gap-4 sm:max-w-md">
-              {products.map((p) => (
-                <li key={p.slug}>
-                  <ProductCard {...toProductCardProps(p)} />
-                </li>
-              ))}
-            </ul>
-          )}
+          <ProductCarousel products={products} label="Red Tea products" cardWidthClassName="w-[46%] sm:w-56" />
         </div>
       </div>
     </section>

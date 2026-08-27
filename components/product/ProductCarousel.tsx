@@ -12,6 +12,14 @@ export interface ProductCarouselProps {
   /** Tailwind width classes for each card. Defaults to a size that shows ~2 cards per row on
    *  mobile and scales up on larger screens. */
   cardWidthClassName?: string;
+  /** Pre-rendered overlay per card (e.g. ComboValue's "Save ₹X vs. separately" badge), keyed by
+   * product slug — a plain object of already-rendered elements, not a render function: this
+   * component is a Client Component, and a function prop can't cross the Server→Client boundary
+   * (Next.js can only serialize Server Actions that way, not arbitrary closures — this was a real
+   * build failure before the fix, not a hypothetical one). The caller (a Server Component) builds
+   * each badge element server-side and hands over the finished map. Optional — most callers don't
+   * need a per-card overlay. */
+  badgeBySlug?: Record<string, React.ReactNode>;
 }
 
 /**
@@ -29,7 +37,7 @@ export interface ProductCarouselProps {
  * scroll" discipline for the shop grid applies in spirit here too: don't fake scale that isn't
  * there yet).
  */
-export function ProductCarousel({ products, label, cardWidthClassName = "w-[72%] sm:w-64" }: ProductCarouselProps) {
+export function ProductCarousel({ products, label, cardWidthClassName = "w-[72%] sm:w-64", badgeBySlug }: ProductCarouselProps) {
   const trackRef = useRef<HTMLUListElement>(null);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
@@ -77,7 +85,8 @@ export function ProductCarousel({ products, label, cardWidthClassName = "w-[72%]
         className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {products.map((p) => (
-          <li key={p.slug} data-carousel-item className={`flex shrink-0 snap-start ${cardWidthClassName}`}>
+          <li key={p.slug} data-carousel-item className={`relative flex shrink-0 snap-start ${cardWidthClassName}`}>
+            {badgeBySlug?.[p.slug]}
             <ProductCard {...toProductCardProps(p)} className="h-full w-full" />
           </li>
         ))}
