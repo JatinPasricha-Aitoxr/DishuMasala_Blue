@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { ProductCard } from "@/components/product/ProductCard";
+import { ProductCarousel } from "@/components/product/ProductCarousel";
 import { Placeholder } from "@/components/media/Placeholder";
-import { toProductCardProps } from "@/lib/product-card";
 import { HOME_COPY } from "@/content/home";
 import type { ProductCardData } from "@/types/catalog";
 
@@ -16,6 +15,10 @@ export interface BlueTeaBandProps {
  * Button variant uses — see components/ui/Button.tsx's own comment on why brew-cool, not the full
  * six-stop Lemon Shift, is the one gradient safe for body text), so this is the single gradient
  * surface in its viewport, per §5.4's cap.
+ *
+ * Products render in `ProductCarousel` (client request), not a fixed grid — there are only 2 real
+ * Blue Tea products today, but the carousel already scrolls/paginates correctly for however many
+ * exist later, so this section doesn't need touching again as the catalogue grows.
  */
 export function BlueTeaBand({ products }: BlueTeaBandProps) {
   const copy = HOME_COPY.blueTeaBand;
@@ -43,15 +46,7 @@ export function BlueTeaBand({ products }: BlueTeaBandProps) {
 
         <div className="flex flex-col gap-4">
           <Placeholder slot="blue-tea-band-editorial" className="rounded-lg" />
-          {products.length > 0 && (
-            <ul className="grid grid-cols-2 gap-4">
-              {products.map((p) => (
-                <li key={p.slug}>
-                  <ProductCard {...toProductCardProps(p)} />
-                </li>
-              ))}
-            </ul>
-          )}
+          <ProductCarousel products={products} label="Blue Tea products" />
         </div>
       </div>
     </section>
