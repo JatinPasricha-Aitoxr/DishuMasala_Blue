@@ -47,14 +47,14 @@ export async function Footer() {
       <div aria-hidden="true" className="h-1.5 w-full" style={{ backgroundImage: "var(--gradient-lemon-shift)" }} />
 
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col items-start gap-4">
           {branding.logo ? (
             <Image
               src={branding.logo.url}
               alt={branding.logo.alt}
               width={Math.round((branding.logo.width / branding.logo.height) * 28)}
               height={28}
-              className="h-7 w-auto"
+              className="h-7 w-auto object-contain"
             />
           ) : (
             <p className="font-display text-lg font-semibold text-ink">Dishu Masala</p>

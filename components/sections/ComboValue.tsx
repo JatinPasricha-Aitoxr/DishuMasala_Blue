@@ -23,7 +23,10 @@ export function ComboValue({ combos, spices }: ComboValueProps) {
     const savingPaise = computeComboSavingPaise(combo, spices);
     if (savingPaise != null) {
       badgeBySlug[combo.slug] = (
-        <span className="absolute left-2.5 top-2.5 z-20 rounded-sm bg-ink px-2 py-1 text-xs font-semibold tabular-nums text-surface shadow-card">
+        <span
+          key={`${combo.slug}-saving-badge`}
+          className="absolute left-2.5 top-2.5 z-20 rounded-sm bg-ink px-2 py-1 text-xs font-semibold tabular-nums text-surface shadow-card"
+        >
           Save {formatINR(savingPaise)} vs. separately
         </span>
       );

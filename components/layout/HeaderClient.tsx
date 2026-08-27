@@ -38,7 +38,7 @@ function BrandMark({ logo }: { logo: SiteBranding["logo"] }) {
       width={displayWidth}
       height={displayHeight}
       priority
-      className="h-8 w-auto"
+      className="h-8 w-auto object-contain"
     />
   );
 }
