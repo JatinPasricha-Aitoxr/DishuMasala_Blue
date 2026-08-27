@@ -23,7 +23,11 @@ export function ClassicAssamStrip({ products }: ClassicAssamStripProps) {
         <h2 id="classic-assam-heading" className="font-display text-lg font-semibold text-ink-2">
           {HOME_COPY.classicAssam.heading}
         </h2>
-        <p className="mt-1 text-sm text-ink-2">{HOME_COPY.classicAssam.body}</p>
+        {HOME_COPY.classicAssam.body.map((paragraph, i) => (
+          <p key={i} className="mt-1 text-sm text-ink-2">
+            {paragraph}
+          </p>
+        ))}
 
         <div className="mt-6">
           <ProductCarousel products={products} label="Classic & Assam products" />

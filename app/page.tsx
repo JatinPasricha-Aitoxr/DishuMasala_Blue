@@ -1,6 +1,12 @@
 import { getCollectionsWithStats } from "@/lib/db/queries/collections";
 import { getPublishedProductsByCollectionSlug } from "@/lib/db/queries/products";
-import { getHomepageBanners, getRedTeaSectionBanner, getRedTeaLifestyleImage, getSpicesSectionBanner } from "@/lib/db/queries/settings";
+import {
+  getHomepageBanners,
+  getRedTeaSectionBanner,
+  getRedTeaLifestyleImage,
+  getSpicesSectionBanner,
+  getClassicTeaSectionBanner,
+} from "@/lib/db/queries/settings";
 import { PromoBannerSlider } from "@/components/hero/PromoBannerSlider";
 import { TrustStrip } from "@/components/layout/TrustStrip";
 import { BlueTeaBand } from "@/components/sections/BlueTeaBand";
@@ -31,19 +37,31 @@ import { NewsletterSection } from "@/components/sections/NewsletterSection";
  * file or components/sections/* hardcodes a name, price or image URL.
  */
 export default async function Home() {
-  const [collections, blueTea, redTea, combos, spices, classicAssam, banners, redTeaBanner, redTeaLifestyle, spicesBanner] =
-    await Promise.all([
-      getCollectionsWithStats(),
-      getPublishedProductsByCollectionSlug("blue-tea"),
-      getPublishedProductsByCollectionSlug("red-tea"),
-      getPublishedProductsByCollectionSlug("combos"),
-      getPublishedProductsByCollectionSlug("spices"),
-      getPublishedProductsByCollectionSlug("classic-teas"),
-      getHomepageBanners(),
-      getRedTeaSectionBanner(),
-      getRedTeaLifestyleImage(),
-      getSpicesSectionBanner(),
-    ]);
+  const [
+    collections,
+    blueTea,
+    redTea,
+    combos,
+    spices,
+    classicAssam,
+    banners,
+    redTeaBanner,
+    redTeaLifestyle,
+    spicesBanner,
+    classicTeaBanner,
+  ] = await Promise.all([
+    getCollectionsWithStats(),
+    getPublishedProductsByCollectionSlug("blue-tea"),
+    getPublishedProductsByCollectionSlug("red-tea"),
+    getPublishedProductsByCollectionSlug("combos"),
+    getPublishedProductsByCollectionSlug("spices"),
+    getPublishedProductsByCollectionSlug("classic-teas"),
+    getHomepageBanners(),
+    getRedTeaSectionBanner(),
+    getRedTeaLifestyleImage(),
+    getSpicesSectionBanner(),
+    getClassicTeaSectionBanner(),
+  ]);
 
   // The one part of CLAUDE.md §7.2 this file's fixed section order can't re-derive on its own is
   // "Blue Tea first, then Red Tea" — verify that invariant against the live DB priority values on
@@ -68,6 +86,7 @@ export default async function Home() {
         <RedTeaSection products={redTea} lifestyleImage={redTeaLifestyle} />
       </ScrollColorBand>
       <PromoBannerSlider banners={redTeaBanner} ariaLabel="Red Tea promotion" />
+      <PromoBannerSlider banners={classicTeaBanner} ariaLabel="Classic & Assam promotion" />
       <ClassicAssamStrip products={classicAssam} />
       <SpicesBanner banner={spicesBanner} />
       <SpicesGrid products={spices} />

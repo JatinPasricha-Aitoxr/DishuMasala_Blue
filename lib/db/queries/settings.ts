@@ -177,6 +177,12 @@ export async function getSpicesSectionBanner(): Promise<HomepageBanner[]> {
   return getBannerSet("spices_section_banner");
 }
 
+/** The banner shown right after the homepage's Red Tea section, introducing Classic & Assam
+ * (scripts/migrate-classic-tea-banner.ts). */
+export async function getClassicTeaSectionBanner(): Promise<HomepageBanner[]> {
+  return getBannerSet("classic_tea_section_banner");
+}
+
 export interface SectionImage {
   r2Key: string;
   width: number;

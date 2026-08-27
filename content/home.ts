@@ -68,8 +68,12 @@ export const HOME_COPY = {
 
   classicAssam: {
     eyebrow: "Classic & Assam",
-    heading: "Everyday tea, garden-fresh",
-    body: "Bold, malty loose-leaf black teas for the everyday pot.",
+    heading: "Everyday Tea, Garden-Fresh",
+    body: [
+      "Bold, malty loose-leaf black tea, carefully selected for a rich, full-bodied cup that " +
+        "makes every everyday brew feel a little more special.",
+      "Fresh in character, deep in flavour, and made for the perfect pot, every day.",
+    ],
   },
 
   ritual: {
