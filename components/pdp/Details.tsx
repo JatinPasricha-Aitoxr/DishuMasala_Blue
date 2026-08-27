@@ -32,50 +32,59 @@ export function Details({ description, freeShippingThresholdPaise }: DetailsProp
   if (parsed.keyCharacteristics) defaultOpen.push("characteristics");
 
   return (
-    <Accordion type="multiple" defaultValue={defaultOpen}>
-      {parsed.keyCharacteristics && (
-        <AccordionItem value="characteristics">
-          <AccordionTrigger>Key Characteristics</AccordionTrigger>
+    <section aria-labelledby="pdp-details-heading">
+      {/* Radix's Accordion.Header renders each trigger's wrapper as an <h3> — this h2 keeps the
+       * page's heading order sequential (h1 product name → h2 → h3 accordion triggers) rather
+       * than jumping straight from the PDP's h1 to h3 (a real axe/Lighthouse a11y violation this
+       * bridges, not decoration). */}
+      <h2 id="pdp-details-heading" className="mb-1 font-display text-lg font-semibold text-ink">
+        Details
+      </h2>
+      <Accordion type="multiple" defaultValue={defaultOpen}>
+        {parsed.keyCharacteristics && (
+          <AccordionItem value="characteristics">
+            <AccordionTrigger>Key Characteristics</AccordionTrigger>
+            <AccordionContent>
+              <BlockText text={parsed.keyCharacteristics} />
+            </AccordionContent>
+          </AccordionItem>
+        )}
+
+        {parsed.ingredients && (
+          <AccordionItem value="ingredients">
+            <AccordionTrigger>Ingredients</AccordionTrigger>
+            <AccordionContent>
+              <p className="text-sm leading-relaxed text-ink-2">{parsed.ingredients}</p>
+            </AccordionContent>
+          </AccordionItem>
+        )}
+
+        {parsed.howToUse && (
+          <AccordionItem value="how-to-use">
+            <AccordionTrigger>How to brew / How to use</AccordionTrigger>
+            <AccordionContent>
+              <BlockText text={parsed.howToUse} />
+            </AccordionContent>
+          </AccordionItem>
+        )}
+
+        <AccordionItem value="shipping-returns">
+          <AccordionTrigger>Shipping &amp; Returns</AccordionTrigger>
           <AccordionContent>
-            <BlockText text={parsed.keyCharacteristics} />
+            <div className="flex flex-col gap-1.5 text-sm leading-relaxed text-ink-2">
+              <p>Free shipping on orders over {formatINR(freeShippingThresholdPaise)}.</p>
+              <p>Cash on Delivery is available.</p>
+              {/* No return/refund window number exists anywhere in this project's docs today — the
+               * client hasn't supplied one, and CLAUDE.md §8 bans inventing a figure. The real
+               * policy page (returns window, refund process, grievance contact) ships in Phase 8. */}
+              <p>
+                Our full shipping and returns policy is being finalised and will appear here shortly. For
+                questions about an order, contact us directly.
+              </p>
+            </div>
           </AccordionContent>
         </AccordionItem>
-      )}
-
-      {parsed.ingredients && (
-        <AccordionItem value="ingredients">
-          <AccordionTrigger>Ingredients</AccordionTrigger>
-          <AccordionContent>
-            <p className="text-sm leading-relaxed text-ink-2">{parsed.ingredients}</p>
-          </AccordionContent>
-        </AccordionItem>
-      )}
-
-      {parsed.howToUse && (
-        <AccordionItem value="how-to-use">
-          <AccordionTrigger>How to brew / How to use</AccordionTrigger>
-          <AccordionContent>
-            <BlockText text={parsed.howToUse} />
-          </AccordionContent>
-        </AccordionItem>
-      )}
-
-      <AccordionItem value="shipping-returns">
-        <AccordionTrigger>Shipping &amp; Returns</AccordionTrigger>
-        <AccordionContent>
-          <div className="flex flex-col gap-1.5 text-sm leading-relaxed text-ink-2">
-            <p>Free shipping on orders over {formatINR(freeShippingThresholdPaise)}.</p>
-            <p>Cash on Delivery is available.</p>
-            {/* No return/refund window number exists anywhere in this project's docs today — the
-             * client hasn't supplied one, and CLAUDE.md §8 bans inventing a figure. The real
-             * policy page (returns window, refund process, grievance contact) ships in Phase 8. */}
-            <p>
-              Our full shipping and returns policy is being finalised and will appear here shortly. For
-              questions about an order, contact us directly.
-            </p>
-          </div>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+      </Accordion>
+    </section>
   );
 }
