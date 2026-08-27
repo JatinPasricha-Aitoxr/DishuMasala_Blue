@@ -5,7 +5,7 @@ import { forwardRef } from "react";
 import type { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/cn";
 
-export type ButtonVariant = "gradient" | "solid-ink" | "outline" | "ghost" | "link";
+export type ButtonVariant = "gradient" | "solid-ink" | "solid-surface" | "solid-crit" | "outline" | "ghost" | "link";
 export type ButtonSize = "sm" | "md" | "lg";
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -30,6 +30,17 @@ const BASE =
 
 const VARIANT_CLASSES: Record<Exclude<ButtonVariant, "gradient">, string> = {
   "solid-ink": "bg-ink text-surface hover:opacity-90 active:opacity-95 shadow-card",
+  // A light pill for sitting on top of a saturated/colour background (e.g. BlueTeaBand's CTA on
+  // the scroll-shifted gradient) — added because `cn()` (lib/cn.ts) deliberately has no
+  // tailwind-merge/override logic, so passing a colour-overriding `className` alongside
+  // `variant="solid-ink"` doesn't reliably win the cascade (which class wins depends on Tailwind's
+  // generated CSS order, not the class-attribute order) — it silently rendered ink-on-ink once the
+  // background itself turned a similarly dark colour. A real variant is the correct fix, not a
+  // className override.
+  "solid-surface": "bg-surface text-ink hover:opacity-90 active:opacity-95 shadow-card",
+  // Same reasoning as solid-surface above — a real variant for a destructive/critical action
+  // (e.g. admin order cancellation) instead of overriding solid-ink's bg-ink via className.
+  "solid-crit": "bg-crit text-surface hover:opacity-90 active:opacity-95 shadow-card",
   outline: "border border-line bg-transparent text-ink hover:bg-surface-2",
   ghost: "bg-transparent text-ink hover:bg-surface-2",
   link: "bg-transparent text-ink underline underline-offset-4 hover:text-ink-2 h-auto p-0",

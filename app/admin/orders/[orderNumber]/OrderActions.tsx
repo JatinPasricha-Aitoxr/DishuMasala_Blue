@@ -247,7 +247,7 @@ function CancelDialog({ orderId, orderNumber, onDone }: { orderId: number; order
               Never mind
             </Button>
           </DialogClose>
-          <Button size="sm" variant="solid-ink" className="bg-crit hover:opacity-90" loading={pending} disabled={!canSubmit} onClick={submit}>
+          <Button size="sm" variant="solid-crit" loading={pending} disabled={!canSubmit} onClick={submit}>
             Cancel order
           </Button>
         </div>

@@ -4,7 +4,10 @@ export interface SectionHeadingProps {
   id: string;
   eyebrow: string;
   heading: string;
-  body?: string;
+  /** A single paragraph, or an array rendered as separate paragraphs (client-requested line
+   * breaks — e.g. Red Tea's "Bright • Floral • Mildly Tart • Caffeine-Free" reading as its own
+   * line rather than folded into the surrounding sentence). */
+  body?: string | readonly string[];
   /** Eyebrow colour — a token utility class (e.g. "text-brew-2", "text-hibiscus"). Never a hex
    * literal at the call site. Must clear 4.5:1 on white/ivory at this text's size (CLAUDE.md §5.6):
    * brew-2, hibiscus, leaf, chilli, pepper, ink and ink-2 all do; turmeric, coriander and gold do
@@ -45,7 +48,12 @@ export function SectionHeading({
       >
         {heading}
       </h2>
-      {body && <p className={cn("max-w-2xl text-base leading-relaxed", isLight ? "text-white/90" : "text-ink-2")}>{body}</p>}
+      {body &&
+        (Array.isArray(body) ? body : [body]).map((paragraph, i) => (
+          <p key={i} className={cn("max-w-2xl text-base leading-relaxed", isLight ? "text-white/90" : "text-ink-2")}>
+            {paragraph}
+          </p>
+        ))}
     </div>
   );
 }

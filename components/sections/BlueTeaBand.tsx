@@ -37,7 +37,7 @@ export function BlueTeaBand({ products }: BlueTeaBandProps) {
         <p className="max-w-lg text-base leading-relaxed text-white/90">{copy.bodyPrimary}</p>
         <p className="max-w-lg text-base leading-relaxed text-white/90">{copy.bodySecondary}</p>
         <div className="mt-2">
-          <Button asChild variant="solid-ink" size="lg" className="bg-surface text-ink hover:bg-surface/90 hover:opacity-100">
+          <Button asChild variant="solid-surface" size="lg">
             <Link href={copy.ctaHref}>{copy.ctaLabel}</Link>
           </Button>
         </div>
