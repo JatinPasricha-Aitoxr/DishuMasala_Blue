@@ -30,6 +30,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `pnpm db:seed` | Idempotently seed from `data/catalog.json` |
 | `pnpm db:studio` | Drizzle Studio |
 | `pnpm migrate-images` | Pull product images off the old site, generate AVIF/WebP derivatives, upload to R2 |
+| `pnpm migrate-brand-assets` | Pull the real logo + favicon off the old site, upload to R2, save `settings.site_branding` |
 
 ## Environment
 
