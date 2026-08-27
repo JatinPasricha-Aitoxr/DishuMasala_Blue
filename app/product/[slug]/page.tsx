@@ -16,6 +16,7 @@ import { Details } from "@/components/pdp/Details";
 import { BrewStory } from "@/components/pdp/BrewStory";
 import { Reviews } from "@/components/pdp/Reviews";
 import { ProductGrid } from "@/components/shop/ProductGrid";
+import { CollectionFaq } from "@/components/sections/CollectionFaq";
 import { formatINR } from "@/lib/money";
 import { publicUrl } from "@/lib/storage/r2";
 
@@ -124,9 +125,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-12">
+    <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
 
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:py-12">
       <nav aria-label="Breadcrumb" className="mb-6 text-sm text-ink-2">
         <ol className="flex flex-wrap items-center gap-1.5">
           <li>
@@ -195,6 +197,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
           </div>
         </div>
       )}
-    </div>
+
+      </div>
+
+      {collection && (
+        <div className="border-t border-line">
+          <CollectionFaq collectionSlug={collection.slug} collectionTitle={product.name} />
+        </div>
+      )}
+    </>
   );
 }

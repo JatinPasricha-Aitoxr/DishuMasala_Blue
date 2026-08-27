@@ -19,6 +19,7 @@ import { ClassicAssamStrip } from "@/components/sections/ClassicAssamStrip";
 import { RitualTeaser } from "@/components/sections/RitualTeaser";
 import { ReviewsEmptyState } from "@/components/sections/ReviewsEmptyState";
 import { NewsletterSection } from "@/components/sections/NewsletterSection";
+import { CollectionFaq } from "@/components/sections/CollectionFaq";
 
 /**
  * The homepage (Phase 2 / PROMPTS.md, replacing Phase 0's plain-text DB proof page). Section order
@@ -93,6 +94,7 @@ export default async function Home() {
       <ComboValue combos={combos} spices={spices} />
       <RitualTeaser />
       <ReviewsEmptyState />
+      <CollectionFaq collectionSlug="general" collectionTitle="Dishu Masala" />
       <NewsletterSection />
     </>
   );

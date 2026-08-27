@@ -18,6 +18,27 @@ export interface FaqItem {
 }
 
 export const COLLECTION_FAQS: Record<string, FaqItem[]> = {
+  general: [
+    {
+      question: "What does Dishu Masala sell?",
+      answer:
+        "Herbal teas — Blue Tea and Red Tea — alongside Classic and Premium Assam black teas, a range of ground spices, and combo packs that pair our most popular spices together.",
+    },
+    {
+      question: "Which of your teas are caffeine-free?",
+      answer:
+        "Blue Tea and Red Tea are both naturally caffeine-free herbal infusions. Classic Tea and Premium Assam Tea are traditional black teas and do contain caffeine.",
+    },
+    {
+      question: "Where are your spices sourced from?",
+      answer: "Our spices are sourced in Punjab.",
+    },
+    {
+      question: "How should I store my order?",
+      answer:
+        "Keep teas and spices in an airtight container in a cool, dry place away from direct sunlight, and reseal the pack tightly after every use.",
+    },
+  ],
   "blue-tea": [
     {
       question: "What is Blue Tea made of?",
