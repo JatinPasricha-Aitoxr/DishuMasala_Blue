@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { requireStaffOrAdmin } from "@/lib/auth/session";
 import { getAdminReviewById } from "@/lib/db/queries/admin-reviews";
 import { Badge } from "@/components/ui/Badge";
@@ -51,9 +52,8 @@ export default async function AdminReviewDetailPage({ params }: { params: Promis
         {review.photos.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-3">
             {review.photos.map((p) => (
-              // eslint-disable-next-line @next/next/no-img-element -- plain thumbnail preview, no CLS-sensitive layout needed here
-              <a key={p.id} href={p.url} target="_blank" rel="noreferrer">
-                <img src={p.url} alt="Review photo" className="h-24 w-24 rounded-md border border-line object-cover" />
+              <a key={p.id} href={p.url} target="_blank" rel="noreferrer" className="relative block size-24 overflow-hidden rounded-md border border-line">
+                <Image src={p.url} alt="Review photo" fill sizes="96px" className="object-cover" />
               </a>
             ))}
           </div>
