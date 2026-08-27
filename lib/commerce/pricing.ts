@@ -38,6 +38,9 @@ export interface PricingLine {
   productId: number;
   collectionId: number;
   productName: string;
+  /** Display-only (CLAUDE.md §7.2 priority) — passed through so the cart's upsell rail can sort
+   * without a second query; never part of any money computation. */
+  priority: number;
   sku: string;
   optionValue: string;
   mrpPaise: Paise;
@@ -229,6 +232,7 @@ export async function computePricing(input: PricingInput, deps: PricingDeps): Pr
       productId: v.productId,
       collectionId: v.collectionId,
       productName: v.productName,
+      priority: v.priority,
       sku: v.sku,
       optionValue: v.optionValue,
       mrpPaise: v.mrpPaise,

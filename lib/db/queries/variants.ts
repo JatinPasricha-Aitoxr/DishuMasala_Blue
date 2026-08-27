@@ -12,6 +12,10 @@ export interface VariantPricingRow {
   productId: number;
   collectionId: number;
   productName: string;
+  /** The product's own priority (CLAUDE.md §7.2) — carried through pricing so display-only
+   * consumers (cart upsells) can sort/filter by it without a second round trip. Never used for
+   * any money computation. */
+  priority: number;
   sku: string;
   optionValue: string;
   mrpPaise: Paise;
@@ -36,6 +40,7 @@ export async function getVariantsForPricing(ids: number[]): Promise<VariantPrici
       productId: variants.productId,
       collectionId: products.collectionId,
       productName: products.name,
+      priority: products.priority,
       sku: variants.sku,
       optionValue: variants.optionValue,
       mrpPaise: variants.mrpPaise,
