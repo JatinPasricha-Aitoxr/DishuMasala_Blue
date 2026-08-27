@@ -330,34 +330,34 @@ export function ProductForm({
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-ink-2">SKU</label>
-                  <Input value={v.sku} onChange={(e) => updateVariant(i, { sku: e.target.value })} />
+                  <label htmlFor={`variant-${i}-sku`} className="mb-1 block text-xs font-medium text-ink-2">SKU</label>
+                  <Input id={`variant-${i}-sku`} value={v.sku} onChange={(e) => updateVariant(i, { sku: e.target.value })} />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-ink-2">Option value</label>
-                  <Input value={v.optionValue} onChange={(e) => updateVariant(i, { optionValue: e.target.value })} />
+                  <label htmlFor={`variant-${i}-optionValue`} className="mb-1 block text-xs font-medium text-ink-2">Option value</label>
+                  <Input id={`variant-${i}-optionValue`} value={v.optionValue} onChange={(e) => updateVariant(i, { optionValue: e.target.value })} />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-ink-2">MRP (₹)</label>
-                  <Input type="number" step="0.01" value={v.mrpRupees} onChange={(e) => updateVariant(i, { mrpRupees: e.target.value })} />
+                  <label htmlFor={`variant-${i}-mrp`} className="mb-1 block text-xs font-medium text-ink-2">MRP (₹)</label>
+                  <Input id={`variant-${i}-mrp`} type="number" step="0.01" value={v.mrpRupees} onChange={(e) => updateVariant(i, { mrpRupees: e.target.value })} />
                   <p className="mt-1 text-xs text-ink-3">{previewPaise(v.mrpRupees)}</p>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-ink-2">Price (₹)</label>
-                  <Input type="number" step="0.01" value={v.priceRupees} onChange={(e) => updateVariant(i, { priceRupees: e.target.value })} />
+                  <label htmlFor={`variant-${i}-price`} className="mb-1 block text-xs font-medium text-ink-2">Price (₹)</label>
+                  <Input id={`variant-${i}-price`} type="number" step="0.01" value={v.priceRupees} onChange={(e) => updateVariant(i, { priceRupees: e.target.value })} />
                   <p className="mt-1 text-xs text-ink-3">{previewPaise(v.priceRupees)}</p>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-ink-2">Weight (grams)</label>
-                  <Input type="number" value={v.weightGrams} onChange={(e) => updateVariant(i, { weightGrams: e.target.value })} />
+                  <label htmlFor={`variant-${i}-weight`} className="mb-1 block text-xs font-medium text-ink-2">Weight (grams)</label>
+                  <Input id={`variant-${i}-weight`} type="number" value={v.weightGrams} onChange={(e) => updateVariant(i, { weightGrams: e.target.value })} />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-ink-2">Stock count (optional)</label>
-                  <Input type="number" value={v.stockQty} onChange={(e) => updateVariant(i, { stockQty: e.target.value })} placeholder="Leave blank if unknown" />
+                  <label htmlFor={`variant-${i}-stockQty`} className="mb-1 block text-xs font-medium text-ink-2">Stock count (optional)</label>
+                  <Input id={`variant-${i}-stockQty`} type="number" value={v.stockQty} onChange={(e) => updateVariant(i, { stockQty: e.target.value })} placeholder="Leave blank if unknown" />
                 </div>
               </div>
-              <label className="mt-3 flex items-center gap-2 text-sm text-ink">
-                <Checkbox checked={v.inStock} onCheckedChange={(c) => updateVariant(i, { inStock: c === true })} />
+              <label htmlFor={`variant-${i}-inStock`} className="mt-3 flex items-center gap-2 text-sm text-ink">
+                <Checkbox id={`variant-${i}-inStock`} checked={v.inStock} onCheckedChange={(c) => updateVariant(i, { inStock: c === true })} />
                 In stock
               </label>
             </li>
