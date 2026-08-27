@@ -29,12 +29,6 @@ interface BannerSource {
 
 const BANNERS: BannerSource[] = [
   {
-    slot: "raksha-bandhan-gift",
-    file: "Raksha Bandhar Banner.png",
-    alt: "Happy Raksha Bandhan — Dishu Masala Premium Herbal Red Tea and Blue Tea, a perfect Rakhi gift, free shipping",
-    href: "/shop",
-  },
-  {
     slot: "blue-tea-chai",
     file: "hero banner.png",
     alt: "Blue by Nature, Better by Choice — Dishu Premium Herbal Blue Tea, 100% herbal, caffeine-free, zero sugar, enriched with Butterfly Pea Flower",
