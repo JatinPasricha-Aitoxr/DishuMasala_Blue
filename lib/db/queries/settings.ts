@@ -76,3 +76,65 @@ export async function getGstin(): Promise<string | null> {
   if (row == null) return null;
   return row.value as string;
 }
+
+/** Announcement-bar copy (Phase 7's admin settings). Falls back to a plain, honest default that
+ * states only real, always-true facts (the WELCOME5 coupon CLAUDE.md §7.4 guarantees exists) —
+ * never an invented claim — if the settings row is somehow missing. */
+export async function getAnnouncementBarText(): Promise<string> {
+  const [row] = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, "announcement_bar_text")).limit(1);
+  if (row == null || typeof row.value !== "string") return "Free shipping over ₹500 · Use code WELCOME5 for 5% off your first order";
+  return row.value;
+}
+
+/** The maintenance/degraded-banner toggle (Phase 7's admin settings, consumed by a future
+ * resilience phase's degraded banner per CLAUDE.md §9/PROMPTS.md Phase 9 item 5). Defaults to
+ * false (not degraded) if the row is somehow missing. */
+export async function getMaintenanceMode(): Promise<boolean> {
+  const [row] = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, "maintenance_mode")).limit(1);
+  if (row == null || typeof row.value !== "boolean") return false;
+  return row.value;
+}
+
+/** Every settings row the admin settings page (Phase 7 item 6) reads and edits, in one round
+ * trip — the "one typed helper" every settings read in this codebase goes through (grepped and
+ * confirmed at the end of Phase 7: no component reads `settings` ad hoc or hardcodes a literal
+ * that belongs here instead). */
+export interface AdminSettingsSnapshot {
+  freeShippingThresholdPaise: Paise;
+  standardShippingPaise: Paise;
+  storeAddress: StoreAddress;
+  gstin: string;
+  announcementBarText: string;
+  maintenanceMode: boolean;
+}
+
+const EMPTY_STORE_ADDRESS: StoreAddress = {
+  businessName: "Dishu Food and Beverages",
+  line1: "TODO",
+  city: "TODO",
+  state: "TODO",
+  pincode: "TODO",
+  country: "India",
+  phone: "TODO",
+  email: "TODO",
+};
+
+export async function getAdminSettingsSnapshot(): Promise<AdminSettingsSnapshot> {
+  const [freeShippingThresholdPaise, standardShippingPaise, storeAddress, gstin, announcementBarText, maintenanceMode] =
+    await Promise.all([
+      getFreeShippingThresholdPaise(),
+      getStandardShippingPaise(),
+      getStoreAddress(),
+      getGstin(),
+      getAnnouncementBarText(),
+      getMaintenanceMode(),
+    ]);
+  return {
+    freeShippingThresholdPaise,
+    standardShippingPaise,
+    storeAddress: storeAddress ?? EMPTY_STORE_ADDRESS,
+    gstin: gstin ?? "TODO",
+    announcementBarText,
+    maintenanceMode,
+  };
+}

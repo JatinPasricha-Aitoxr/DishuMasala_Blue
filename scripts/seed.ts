@@ -228,6 +228,18 @@ async function seedSettings(catalog: Catalog): Promise<void> {
       key: "standard_shipping_paise",
       value: toPaise(50),
     },
+    {
+      // Editable from Phase 7's admin settings page (app/admin/settings) — a real, seedable
+      // default rather than an invented claim: it states only the free-shipping threshold and the
+      // WELCOME5 coupon, both already true facts elsewhere in this seed.
+      key: "announcement_bar_text",
+      value: "Free shipping over ₹500 · Use code WELCOME5 for 5% off your first order",
+    },
+    {
+      // The degraded/maintenance banner toggle (PROMPTS.md Phase 7 item 6) — off by default.
+      key: "maintenance_mode",
+      value: false,
+    },
   ];
 
   for (const row of rows) {
@@ -256,7 +268,9 @@ async function main() {
   console.log("  coupon: WELCOME5 upserted");
 
   await seedSettings(catalog);
-  console.log("  settings: 4 rows upserted (free_shipping_threshold_paise, store_address, gstin, standard_shipping_paise)");
+  console.log(
+    "  settings: 6 rows upserted (free_shipping_threshold_paise, store_address, gstin, standard_shipping_paise, announcement_bar_text, maintenance_mode)",
+  );
 
   console.log("Seed complete.");
 }

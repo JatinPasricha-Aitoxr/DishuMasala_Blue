@@ -11,7 +11,7 @@
  * before it can observe or change anything — the exact case PROMPTS.md's acceptance criterion and
  * tests/e2e/admin-order-actions... unit test below exercise.
  */
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import { requireStaffOrAdmin } from "@/lib/auth/session";
 import { writeAuditLog } from "@/lib/audit";
@@ -291,9 +291,12 @@ export async function cancelOrderAction(input: z.infer<typeof cancelSchema>): Pr
   });
 
   // Stock changed — invalidate every storefront cache tag that could show it (CLAUDE.md §3.4).
-  revalidateTag("products");
-  for (const slug of result.affectedProductSlugs) revalidateTag(`product:${slug}`);
-  for (const slug of result.affectedCollectionSlugs) revalidateTag(`collection:${slug}`);
+  // `updateTag` (Next.js's read-your-own-writes primitive for Server Actions) rather than
+  // `revalidateTag`, which in this Next.js version requires a cache-life profile argument not
+  // relevant here — we want immediate expiration, which is exactly `updateTag`'s contract.
+  updateTag("products");
+  for (const slug of result.affectedProductSlugs) updateTag(`product:${slug}`);
+  for (const slug of result.affectedCollectionSlugs) updateTag(`collection:${slug}`);
   await revalidateOrder(order.orderNumber);
 
   return { ok: true, message: "Order cancelled and stock restored." };

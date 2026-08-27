@@ -29,8 +29,8 @@ export function RevenueSparkline({ points }: { points: Array<{ date: string; rev
         />
         <YAxis tick={{ fontSize: 11, fill: "var(--color-ink-3)" }} axisLine={false} tickLine={false} width={44} />
         <Tooltip
-          formatter={(value: number) => [`₹${value.toLocaleString("en-IN")}`, "Revenue"]}
-          labelFormatter={(d: string) => d}
+          formatter={(value) => [`₹${Number(value).toLocaleString("en-IN")}`, "Revenue"]}
+          labelFormatter={(d) => String(d)}
           contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-line)", borderRadius: 8, fontSize: 12 }}
         />
         <Area type="monotone" dataKey="revenue" stroke="var(--color-brew-2)" strokeWidth={2} fill="url(#revenue-fill)" />
