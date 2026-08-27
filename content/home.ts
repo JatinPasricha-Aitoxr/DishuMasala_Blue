@@ -52,10 +52,14 @@ export const HOME_COPY = {
 
   spices: {
     eyebrow: "Spices",
-    heading: "Single-origin, double-layer packed",
-    body:
-      "Turmeric, red chilli, garam masala, coriander and black pepper, each sourced and packed on " +
-      "its own in double-layer packaging that keeps flavour and aroma intact.",
+    heading: "Single-Origin. Double-Layer Packed.",
+    body: [
+      "Turmeric, red chilli, garam masala, coriander, and black pepper — each carefully sourced " +
+        "and packed separately to preserve its natural aroma, bold flavour, and freshness.",
+      "Our double-layer packaging adds an extra barrier of protection, helping keep every spice " +
+        "vibrant from the pack to your kitchen.",
+      "Purely Sourced • Carefully Packed • Full of Flavour",
+    ],
   },
 
   classicAssam: {

@@ -22,10 +22,10 @@ export function SpicesGrid({ products }: SpicesGridProps) {
         body={HOME_COPY.spices.body}
         accentClassName="text-ink-2"
       />
-      <ul className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-5">
+      <ul className="mt-10 grid grid-cols-2 items-stretch gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-5">
         {products.map((p) => (
-          <li key={p.slug}>
-            <ProductCard {...toProductCardProps(p)} />
+          <li key={p.slug} className="flex">
+            <ProductCard {...toProductCardProps(p)} className="h-full w-full" />
           </li>
         ))}
       </ul>
