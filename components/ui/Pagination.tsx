@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/cn";
+import { pageWindow, PAGINATION_ARROW_CLASS, PAGINATION_ITEM_CLASS } from "./pagination-shared";
 
 export interface PaginationProps {
   page: number;
@@ -9,25 +10,6 @@ export interface PaginationProps {
   onPageChange: (page: number) => void;
   className?: string;
 }
-
-export function pageWindow(page: number, totalPages: number): (number | "ellipsis")[] {
-  const items: (number | "ellipsis")[] = [];
-  const add = (n: number) => items.push(n);
-  const window = 1;
-
-  add(1);
-  if (page - window > 2) items.push("ellipsis");
-  for (let p = Math.max(2, page - window); p <= Math.min(totalPages - 1, page + window); p++) add(p);
-  if (page + window < totalPages - 1) items.push("ellipsis");
-  if (totalPages > 1) add(totalPages);
-
-  return items;
-}
-
-export const PAGINATION_ARROW_CLASS =
-  "flex h-9 min-w-9 items-center justify-center rounded-sm px-2 text-sm text-ink-2 disabled:opacity-40 disabled:pointer-events-none hover:bg-surface-2 aria-disabled:pointer-events-none aria-disabled:opacity-40";
-export const PAGINATION_ITEM_CLASS =
-  "tabular-nums flex h-9 min-w-9 items-center justify-center rounded-sm px-2 text-sm font-medium hover:bg-surface-2";
 
 export function Pagination({ page, totalPages, onPageChange, className }: PaginationProps) {
   if (totalPages <= 1) return null;

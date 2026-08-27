@@ -1,5 +1,5 @@
 import { cn } from "@/lib/cn";
-import { pageWindow, PAGINATION_ARROW_CLASS, PAGINATION_ITEM_CLASS } from "./Pagination";
+import { pageWindow, PAGINATION_ARROW_CLASS, PAGINATION_ITEM_CLASS } from "./pagination-shared";
 
 export interface PaginationLinksProps {
   page: number;

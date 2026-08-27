@@ -119,7 +119,6 @@ describe("app/admin/orders/actions.ts — direct-call proofs", () => {
     expect(row.actor_user_id).toBe(1);
     expect(row.diff).toMatchObject({ orderNumber: realOrderNumber, status: { from: "confirmed", to: "packed" } });
 
-    // eslint-disable-next-line no-console -- deliberate: this is the real audit_log row/diff Phase 7's acceptance report quotes verbatim.
     console.log("[Phase 7 acceptance proof] real audit_log row:", JSON.stringify(row, null, 2));
   });
 
