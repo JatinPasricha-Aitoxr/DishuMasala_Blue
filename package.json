@@ -15,7 +15,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx --env-file-if-exists=.env scripts/seed.ts",
     "db:studio": "drizzle-kit studio",
-    "migrate-images": "tsx --env-file-if-exists=.env scripts/migrate-images.ts"
+    "migrate-images": "tsx --env-file-if-exists=.env scripts/migrate-images.ts",
+    "create-staff-user": "tsx --env-file-if-exists=.env scripts/create-staff-user.ts",
+    "seed-perf-orders": "tsx --env-file-if-exists=.env scripts/seed-perf-orders.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1117.0",
