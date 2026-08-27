@@ -93,6 +93,19 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Body copy reads justified everywhere by default (client request) — a paragraph's last line
+   still lands left-aligned per normal text-align:justify behaviour, so single-line labels/badges
+   are visually unaffected regardless. Product cards are the explicit exception (short, often
+   single-word labels — name, option chips, price — read worse justified), opted back out via
+   `.text-align-normal` rather than needing every other component to opt in. */
+p {
+  text-align: justify;
+}
+.text-align-normal,
+.text-align-normal p {
+  text-align: initial;
+}
+
 /* Prices and any other data display (stock counts, quantities, order totals) must use tabular
    figures so digits don't jitter horizontally as they change — CLAUDE.md §5.3. */
 .tabular-nums,

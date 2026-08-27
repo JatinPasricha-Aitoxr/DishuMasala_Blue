@@ -44,7 +44,11 @@ export function BlueTeaBand({ products }: BlueTeaBandProps) {
       </div>
 
       <div className="min-w-0">
-        <ProductCarousel products={products} label="Blue Tea products" />
+        {/* Narrower than ProductCarousel's default card width — client request: at least the 2
+            real Blue Tea products should both be visible at once without needing to scroll, even
+            on a narrow phone screen. ~46% + the row's gap-4 fits two side by side; a carousel
+            still kicks in correctly once a 3rd+ product exists. */}
+        <ProductCarousel products={products} label="Blue Tea products" cardWidthClassName="w-[46%] sm:w-64" />
       </div>
     </section>
   );

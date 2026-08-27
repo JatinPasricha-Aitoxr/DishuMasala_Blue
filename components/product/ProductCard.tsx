@@ -83,7 +83,9 @@ export function ProductCard({
   return (
     <article
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-lg bg-surface shadow-card",
+        // text-align-normal (app/globals.css): the site-wide justified-body-copy rule explicitly
+        // excludes product cards — short labels (name, option chips, price) read worse justified.
+        "text-align-normal group relative flex flex-col overflow-hidden rounded-lg bg-surface shadow-card",
         "transition-[box-shadow,transform] duration-[200ms] ease-[cubic-bezier(.2,.6,.2,1)]",
         "hover:-translate-y-0.5 hover:shadow-lift focus-within:-translate-y-0.5 focus-within:shadow-lift",
         className,
