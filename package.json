@@ -14,6 +14,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx --env-file-if-exists=.env scripts/seed.ts",
+    "db:seed-content": "tsx --env-file-if-exists=.env scripts/seed-content.ts",
     "db:studio": "drizzle-kit studio",
     "migrate-images": "tsx --env-file-if-exists=.env scripts/migrate-images.ts",
     "create-staff-user": "tsx --env-file-if-exists=.env scripts/create-staff-user.ts",

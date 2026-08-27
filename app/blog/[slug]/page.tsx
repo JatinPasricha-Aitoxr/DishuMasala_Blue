@@ -1,0 +1,86 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import Image from "next/image";
+import { notFound } from "next/navigation";
+import { getPublishedPostBySlug, getRelatedProductsForPost } from "@/lib/db/queries/posts";
+import { TiptapRenderer } from "@/components/content/TiptapRenderer";
+import { readingTimeMinutes } from "@/lib/content/tiptap-schema";
+
+interface PageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const post = await getPublishedPostBySlug(slug, "blog");
+  if (!post) return {};
+  return {
+    title: post.seoTitle ?? post.title,
+    description: post.seoDescription ?? post.excerpt ?? undefined,
+    alternates: { canonical: `/blog/${slug}` },
+    openGraph: { images: post.coverUrl ? [post.coverUrl] : undefined },
+  };
+}
+
+export default async function BlogPostPage({ params }: PageProps) {
+  const { slug } = await params;
+  const post = await getPublishedPostBySlug(slug, "blog");
+  if (!post) notFound();
+
+  const tags: string[] = [];
+  const related = await getRelatedProductsForPost(post.relatedProductIds, tags);
+  const minutes = readingTimeMinutes(post.body);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt ?? post.seoDescription ?? undefined,
+    image: post.coverUrl ?? undefined,
+    author: { "@type": "Organization", name: post.author ?? "Dishu Food and Beverages" },
+    datePublished: post.publishedAt.toISOString(),
+  };
+
+  return (
+    <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <Link href="/blog" className="text-sm text-ink-2 underline underline-offset-4">← Blog</Link>
+
+      {post.coverUrl && (
+        <div className="relative mt-4 aspect-video overflow-hidden rounded-lg bg-surface-2 shadow-card">
+          <Image src={post.coverUrl} alt="" fill sizes="(max-width: 768px) 100vw, 768px" priority className="object-cover" />
+        </div>
+      )}
+
+      <h1 className="mt-6 font-display text-3xl font-semibold text-ink sm:text-4xl">{post.title}</h1>
+      <p className="mt-2 text-sm text-ink-3">
+        {post.author && <>By {post.author} · </>}
+        {post.publishedAt.toLocaleDateString("en-IN", { dateStyle: "medium" })} · ~{minutes} min read
+      </p>
+
+      <div className="mt-8">
+        <TiptapRenderer doc={post.body} />
+      </div>
+
+      {related.length > 0 && (
+        <section className="mt-12 border-t border-line pt-8">
+          <h2 className="font-display text-lg font-semibold text-ink">Related products</h2>
+          <ul className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {related.map((p) => (
+              <li key={p.id}>
+                <Link href={`/product/${p.slug}`} className="group block">
+                  {p.imageUrl && (
+                    <div className="relative aspect-square overflow-hidden rounded-md bg-surface-2">
+                      <Image src={p.imageUrl} alt={p.imageAlt ?? ""} fill sizes="200px" className="object-cover" />
+                    </div>
+                  )}
+                  <p className="mt-1.5 text-sm font-medium text-ink group-hover:underline">{p.name}</p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </main>
+  );
+}
