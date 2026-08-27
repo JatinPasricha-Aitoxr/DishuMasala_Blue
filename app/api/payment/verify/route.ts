@@ -3,6 +3,7 @@ import { z } from "zod";
 import { verifyCheckoutSignature } from "@/lib/razorpay/signature";
 import { getOrderByRazorpayOrderId } from "@/lib/db/queries/orders";
 import { finalizeOrderPayment } from "@/lib/commerce/order-fulfillment";
+import { buildOrderConfirmationUrl } from "@/lib/order-token";
 
 /**
  * The client-side "verify" fast path (PROMPTS.md Phase 5 item 7): Razorpay's checkout hands the
@@ -65,7 +66,12 @@ export async function POST(req: Request): Promise<NextResponse> {
       );
     }
 
-    return NextResponse.json({ ok: true, orderNumber: order.orderNumber });
+    const confirmationUrl = buildOrderConfirmationUrl(
+      process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+      order.orderNumber,
+      order.email,
+    );
+    return NextResponse.json({ ok: true, orderNumber: order.orderNumber, confirmationUrl });
   } catch (err) {
     console.error("[payment/verify] unhandled error", err);
     return NextResponse.json(

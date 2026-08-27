@@ -7,6 +7,11 @@ import { createOrderTransaction, attachRazorpayOrderId, markOrderPaymentFailed }
 import { getOrderByIdempotencyKey, getOrderById } from "@/lib/db/queries/orders";
 import { getRazorpayClient } from "@/lib/razorpay/client";
 import { runOrderConfirmedSideEffects } from "@/lib/commerce/order-fulfillment";
+import { buildOrderConfirmationUrl } from "@/lib/order-token";
+
+function confirmationUrlFor(orderNumber: string, email: string): string {
+  return buildOrderConfirmationUrl(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000", orderNumber, email);
+}
 
 /**
  * The integrity gate (CLAUDE.md §7.5 / PROMPTS.md Phase 5 item 6), executed in this exact order:
@@ -83,6 +88,7 @@ export async function POST(req: Request): Promise<NextResponse> {
         paymentMethod: existing.paymentMethod,
         razorpayOrderId: existing.razorpayOrderId,
         totalPaise: existing.totalPaise,
+        confirmationUrl: confirmationUrlFor(existing.orderNumber, existing.email),
       });
     }
 
@@ -145,6 +151,7 @@ export async function POST(req: Request): Promise<NextResponse> {
         paymentMethod: order?.paymentMethod ?? input.paymentMethod,
         razorpayOrderId: order?.razorpayOrderId ?? null,
         totalPaise: order?.totalPaise ?? pricing.totalPaise,
+        confirmationUrl: confirmationUrlFor(createResult.orderNumber, input.email),
       });
     }
 
@@ -162,6 +169,7 @@ export async function POST(req: Request): Promise<NextResponse> {
         paymentMethod: "cod" as const,
         razorpayOrderId: null,
         totalPaise: pricing.totalPaise,
+        confirmationUrl: confirmationUrlFor(createResult.orderNumber, input.email),
       });
     }
 
@@ -191,6 +199,7 @@ export async function POST(req: Request): Promise<NextResponse> {
         razorpayOrderId: razorpayOrder.id,
         razorpayKeyId: client.keyId,
         totalPaise: pricing.totalPaise,
+        confirmationUrl: confirmationUrlFor(createResult.orderNumber, input.email),
       });
     } catch {
       await markOrderPaymentFailed(createResult.orderId);
