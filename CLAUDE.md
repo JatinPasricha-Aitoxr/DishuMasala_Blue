@@ -202,6 +202,16 @@ product photography; gradient card backgrounds in a grid; more than **one** grad
 single viewport (hero excepted); any viewport where ivory/white holds less than 60% of the visible
 area.
 
+**Amended (2026-08-28, client request):** the homepage hero was removed entirely (see §8's
+2026-08-28 log entry). The "Lemon Shift" colour-change idea it carried now lives in the Blue Tea →
+Red Tea section handoff instead: each section's background scroll-shifts colour (blue → pink →
+red) as it passes through the viewport (`components/sections/ScrollColorBand.tsx`), so both
+sections now carry a full-bleed colour surface where before only Blue Tea's band did. Both are
+still real, token-derived brand colours, never a hex literal in a component and never gradient
+text/product-photo backgrounds — this amends the "one gradient surface" framing above to fit two
+adjacent full-bleed sections deliberately designed as one continuous colour journey, not a lapse
+in the original discipline.
+
 ### 5.5 Motion
 Micro-interactions 160–220ms `cubic-bezier(.2,.6,.2,1)`. Hero brew morph 900–1400ms. Card hover
 lifts 2px and crossfades to the second image. Under `prefers-reduced-motion: reduce` everything

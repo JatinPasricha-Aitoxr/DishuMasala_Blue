@@ -13,6 +13,11 @@ export interface SectionHeadingProps {
   accentClassName?: string;
   align?: "left" | "center";
   className?: string;
+  /** "dark" (default) is ink text for a light/ivory background. "light" is white text for a
+   * saturated colour background (e.g. Red Tea's scroll-shifted band) — overrides accentClassName
+   * with a white-on-colour-safe eyebrow tone, since a family-accent colour like "text-hibiscus"
+   * would be invisible against its own background. */
+  tone?: "dark" | "light";
 }
 
 /** Shared eyebrow + Fraunces heading + optional body copy block, used by every homepage section
@@ -25,18 +30,22 @@ export function SectionHeading({
   accentClassName = "text-brew-2",
   align = "left",
   className,
+  tone = "dark",
 }: SectionHeadingProps) {
+  const isLight = tone === "light";
   return (
     <div className={cn("flex flex-col gap-3", align === "center" && "items-center text-center", className)}>
-      <p className={cn("text-xs font-semibold uppercase tracking-[0.14em]", accentClassName)}>{eyebrow}</p>
+      <p className={cn("text-xs font-semibold uppercase tracking-[0.14em]", isLight ? "text-white/80" : accentClassName)}>
+        {eyebrow}
+      </p>
       <h2
         id={id}
-        className="font-display font-semibold text-ink"
+        className={cn("font-display font-semibold", isLight ? "text-white" : "text-ink")}
         style={{ fontSize: "clamp(1.75rem, 3vw, 2.75rem)", letterSpacing: "-0.015em", lineHeight: 1.1 }}
       >
         {heading}
       </h2>
-      {body && <p className="max-w-2xl text-base leading-relaxed text-ink-2">{body}</p>}
+      {body && <p className={cn("max-w-2xl text-base leading-relaxed", isLight ? "text-white/90" : "text-ink-2")}>{body}</p>}
     </div>
   );
 }
