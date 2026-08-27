@@ -37,6 +37,14 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: r2RemotePattern(),
+    // Next.js 16's image optimizer refuses to fetch from any hostname that resolves to a
+    // private/loopback IP (SSRF hardening), independent of and in addition to remotePatterns
+    // matching — it blocks even an explicitly allow-listed `localhost` with the same generic
+    // "url parameter is not allowed" error. This only needs to be true for the local MinIO
+    // stand-in for R2 (see docs/LOCAL-R2.md / the README's "Local R2 (MinIO)" section) — a real
+    // deploy sets R2_ACCOUNT_ID instead of R2_ENDPOINT and gets the real, non-loopback R2
+    // hostname, so this stays false (the safe default) in every real environment.
+    dangerouslyAllowLocalIP: Boolean(process.env.R2_ENDPOINT),
   },
 };
 
