@@ -3,6 +3,7 @@ import { Fraunces, Inter } from "next/font/google";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { ToastProvider } from "@/components/ui/Toast";
+import { CartDrawer } from "@/components/cart/CartDrawer";
 import "./globals.css";
 
 // Fraunces is a genuinely variable Google font (wght 100–900 plus an optical-size axis) — loading
@@ -53,6 +54,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             {children}
           </main>
           <Footer />
+          <CartDrawer />
         </ToastProvider>
       </body>
     </html>

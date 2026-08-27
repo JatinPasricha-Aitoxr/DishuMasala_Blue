@@ -156,9 +156,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
         <div className="flex flex-col gap-6">
           <PdpInteractive
+            productId={product.id}
             productName={product.name}
             optionLabel={product.optionLabel}
             variants={product.variants}
+            priority={product.priority}
+            primaryImageR2Key={product.images.find((img) => img.isPrimary)?.r2Key ?? product.images[0]?.r2Key ?? null}
             reviewCount={reviewSummary.count}
             reviewAverage={reviewSummary.average}
           />

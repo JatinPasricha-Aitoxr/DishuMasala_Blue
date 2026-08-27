@@ -6,6 +6,7 @@ import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerTitle, Dra
 import { GRADIENT_TILE_SLUGS, type MegaMenuColumn } from "@/lib/nav";
 import { cn } from "@/lib/cn";
 import { formatINR, type Paise } from "@/lib/money";
+import { useCartStore, selectItemCount } from "@/lib/store/cart";
 
 const ANNOUNCEMENT_DISMISSED_KEY = "dm-announcement-dismissed";
 
@@ -66,15 +67,20 @@ function IconCountButton({
   label,
   count,
   href,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   count: number;
   href: string;
+  /** When present, a click opens something in-page (e.g. the cart drawer) instead of navigating —
+   * `href` is still real so the control degrades to a normal link with JavaScript disabled. */
+  onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
 }) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       aria-label={count > 0 ? `${label} (${count})` : label}
       className="relative flex size-10 items-center justify-center rounded-sm text-ink-2 hover:bg-surface-2 hover:text-ink"
     >
@@ -89,6 +95,8 @@ function IconCountButton({
 }
 
 export function HeaderClient({ columns, freeShippingThresholdPaise }: HeaderClientProps) {
+  const cartCount = useCartStore(selectItemCount);
+  const openCart = useCartStore((s) => s.open);
   const [dismissed, setDismissed] = useState(false);
   const [condensed, setCondensed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -340,7 +348,16 @@ export function HeaderClient({ columns, freeShippingThresholdPaise }: HeaderClie
             )}
             <IconCountButton icon={<AccountIcon />} label="Account" count={0} href="/account/" />
             <IconCountButton icon={<WishlistIcon />} label="Wishlist" count={0} href="/wishlist/" />
-            <IconCountButton icon={<CartIcon />} label="Cart" count={0} href="/cart/" />
+            <IconCountButton
+              icon={<CartIcon />}
+              label="Cart"
+              count={cartCount}
+              href="/cart/"
+              onClick={(e) => {
+                e.preventDefault();
+                openCart();
+              }}
+            />
           </div>
         </div>
       </header>
@@ -388,8 +405,15 @@ export function HeaderClient({ columns, freeShippingThresholdPaise }: HeaderClie
               </Link>
             </DrawerClose>
             <DrawerClose asChild>
-              <Link href="/cart/" className="py-2 text-sm font-medium text-ink-2">
-                Cart
+              <Link
+                href="/cart/"
+                className="py-2 text-sm font-medium text-ink-2"
+                onClick={(e) => {
+                  e.preventDefault();
+                  openCart();
+                }}
+              >
+                Cart{cartCount > 0 ? ` (${cartCount})` : ""}
               </Link>
             </DrawerClose>
           </div>

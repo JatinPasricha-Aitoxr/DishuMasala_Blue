@@ -3,14 +3,18 @@
 import { useState } from "react";
 import { BuyBox, type AddToCartPayload } from "@/components/pdp/BuyBox";
 import { StickyAddToCart } from "@/components/pdp/StickyAddToCart";
+import { useCartStore } from "@/lib/store/cart";
 import type { Variant } from "@/types/catalog";
 
 const BUY_BOX_ID = "pdp-buy-box";
 
 export interface PdpInteractiveProps {
+  productId: number;
   productName: string;
   optionLabel: string;
   variants: Variant[];
+  priority: number;
+  primaryImageR2Key: string | null;
   reviewCount: number;
   reviewAverage: number;
 }
@@ -18,11 +22,21 @@ export interface PdpInteractiveProps {
 /**
  * Owns the one piece of state BuyBox and StickyAddToCart both need to agree on — the currently
  * selected variant/quantity — so switching a variant in the main BuyBox is reflected in the sticky
- * mobile bar's price too. No cart store exists yet (Phase 5's lib/store/cart.ts); "add to cart"
- * here is a real, correct payload with nowhere durable to persist to yet, exactly as scoped for
- * this phase.
+ * mobile bar's price too. Phase 5 wires "add to cart" for real, into lib/store/cart.ts (the first
+ * phase with a persistent cart store) — the BuyBox payload that used to just be logged now pushes
+ * a real line into the cart, which itself immediately revalidates against the server.
  */
-export function PdpInteractive({ productName, optionLabel, variants, reviewCount, reviewAverage }: PdpInteractiveProps) {
+export function PdpInteractive({
+  productId,
+  productName,
+  optionLabel,
+  variants,
+  priority,
+  primaryImageR2Key,
+  reviewCount,
+  reviewAverage,
+}: PdpInteractiveProps) {
+  const addItem = useCartStore((s) => s.addItem);
   const [payload, setPayload] = useState<AddToCartPayload | null>(() => {
     const first = variants[0];
     return first ? { variantId: first.id, sku: first.sku, qty: 1, unitPricePaise: first.pricePaise } : null;
@@ -31,9 +45,20 @@ export function PdpInteractive({ productName, optionLabel, variants, reviewCount
   const selectedVariant = variants.find((v) => v.id === payload?.variantId) ?? variants[0];
 
   const addToCart = (p: AddToCartPayload) => {
-    // Phase 5 wires this to lib/store/cart.ts. For now the payload is real and inspectable
-    // (BuyBox also exposes it via a data-testid element) rather than persisted anywhere.
-    console.log("[pdp] add to cart", p);
+    const variant = variants.find((v) => v.id === p.variantId);
+    if (!variant) return;
+    void addItem({
+      variantId: variant.id,
+      productId,
+      priority,
+      qty: p.qty,
+      productName,
+      optionValue: variant.optionValue,
+      sku: variant.sku,
+      mrpPaise: variant.mrpPaise,
+      unitPricePaise: variant.pricePaise,
+      imageR2Key: primaryImageR2Key,
+    });
   };
 
   return (
