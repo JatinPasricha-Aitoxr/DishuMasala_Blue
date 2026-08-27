@@ -10,13 +10,15 @@ export interface ProductGridProps {
 /** 2-up / 3-up / 4-up responsive grid (PROMPTS.md Phase 3 item 4). Each `ProductCard`'s image box
  * already reserves its own aspect ratio (Phase 1), so the grid itself never reflows once a
  * product's real image loads — confirmed still true here since nothing in this layer overrides
- * that sizing. */
+ * that sizing. `items-stretch` + `h-full` on every card (client request: uniform card dimensions
+ * site-wide, not just the homepage carousels) — without it, a grid row's cards only match height
+ * when every product name happens to wrap the same number of lines. */
 export function ProductGrid({ products }: ProductGridProps) {
   return (
-    <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 xl:grid-cols-4 xl:gap-6">
+    <ul className="grid grid-cols-2 items-stretch gap-4 sm:grid-cols-3 sm:gap-5 xl:grid-cols-4 xl:gap-6">
       {products.map((p) => (
-        <li key={p.slug}>
-          <ProductCard {...toProductCardProps(p)} />
+        <li key={p.slug} className="flex">
+          <ProductCard {...toProductCardProps(p)} className="h-full w-full" />
         </li>
       ))}
     </ul>

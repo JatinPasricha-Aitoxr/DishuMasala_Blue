@@ -130,6 +130,17 @@ p {
   to { opacity: 1; }
 }
 
+/* Purely decorative float for the Spices section's raw-spice vector illustrations
+   (components/sections/FloatingSpiceVectors.tsx, client request — "looks bland on desktop").
+   A gentle bob + wobble, no meaningful end-state, so the generic prefers-reduced-motion collapse
+   further down this file (near-zero duration, single iteration) is sufficient on its own — it
+   just freezes each icon at rest, which is correct here, unlike the marquee/lemon-drop scene
+   which needed an explicit override. */
+@keyframes float-spice {
+  0%, 100% { transform: translateY(0) rotate(var(--float-rotate, -4deg)); }
+  50%      { transform: translateY(-14px) rotate(calc(var(--float-rotate, -4deg) * -1)); }
+}
+
 @keyframes dialog-in {
   from { opacity: 0; transform: translate(-50%, -48%) scale(0.98); }
   to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
