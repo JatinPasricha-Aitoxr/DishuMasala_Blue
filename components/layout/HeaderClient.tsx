@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -7,6 +8,7 @@ import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerTitle, Dra
 import { GRADIENT_TILE_SLUGS, type MegaMenuColumn } from "@/lib/nav";
 import { cn } from "@/lib/cn";
 import { formatINR, type Paise } from "@/lib/money";
+import type { SiteBranding } from "@/lib/db/queries/settings";
 import { useCartStore, selectItemCount } from "@/lib/store/cart";
 import { useWishlistStore, selectWishlistCount } from "@/lib/store/wishlist";
 import { getWishlistProductIdsAction } from "@/lib/actions/wishlist";
@@ -16,6 +18,28 @@ const ANNOUNCEMENT_DISMISSED_KEY = "dm-announcement-dismissed";
 export interface HeaderClientProps {
   columns: MegaMenuColumn[];
   freeShippingThresholdPaise: Paise;
+  logo: SiteBranding["logo"];
+}
+
+/** The real migrated logo when it exists, else the text wordmark it was always safe to fall back
+ * to — CLAUDE.md §8's "degrade honestly" discipline, same as every other third-party asset. */
+function BrandMark({ logo }: { logo: SiteBranding["logo"] }) {
+  if (!logo) {
+    return <span className="font-display text-lg font-semibold tracking-[-0.01em] text-ink sm:text-xl">Dishu Masala</span>;
+  }
+  // Fixed display height, width derived from the source aspect ratio — no CLS, no stretching.
+  const displayHeight = 32;
+  const displayWidth = Math.round((logo.width / logo.height) * displayHeight);
+  return (
+    <Image
+      src={logo.url}
+      alt={logo.alt}
+      width={displayWidth}
+      height={displayHeight}
+      priority
+      className="h-8 w-auto"
+    />
+  );
 }
 
 function CartIcon() {
@@ -97,7 +121,7 @@ function IconCountButton({
   );
 }
 
-export function HeaderClient({ columns, freeShippingThresholdPaise }: HeaderClientProps) {
+export function HeaderClient({ columns, freeShippingThresholdPaise, logo }: HeaderClientProps) {
   const cartCount = useCartStore(selectItemCount);
   const openCart = useCartStore((s) => s.open);
   const { status } = useSession();
@@ -272,8 +296,8 @@ export function HeaderClient({ columns, freeShippingThresholdPaise }: HeaderClie
             </button>
           </DrawerTrigger>
 
-          <Link href="/" className="font-display text-lg font-semibold tracking-[-0.01em] text-ink sm:text-xl">
-            Dishu Masala
+          <Link href="/" className="flex items-center" aria-label="Dishu Masala — home">
+            <BrandMark logo={logo} />
           </Link>
 
           <nav className="relative ml-2 hidden lg:block">

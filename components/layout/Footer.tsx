@@ -1,6 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import { getCollectionsWithStats } from "@/lib/db/queries/collections";
-import { getGstin, getStoreAddress } from "@/lib/db/queries/settings";
+import { getGstin, getSiteBranding, getStoreAddress } from "@/lib/db/queries/settings";
 import { NewsletterFormLazy } from "./NewsletterFormLazy";
 
 const POLICY_LINKS = [
@@ -34,10 +35,11 @@ function formatAddressLine(city: string, state: string): string {
 }
 
 export async function Footer() {
-  const [collections, storeAddress, gstin] = await Promise.all([
+  const [collections, storeAddress, gstin, branding] = await Promise.all([
     getCollectionsWithStats(),
     getStoreAddress(),
     getGstin(),
+    getSiteBranding(),
   ]);
 
   return (
@@ -46,7 +48,17 @@ export async function Footer() {
 
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
         <div className="flex flex-col gap-4">
-          <p className="font-display text-lg font-semibold text-ink">Dishu Masala</p>
+          {branding.logo ? (
+            <Image
+              src={branding.logo.url}
+              alt={branding.logo.alt}
+              width={Math.round((branding.logo.width / branding.logo.height) * 28)}
+              height={28}
+              className="h-7 w-auto"
+            />
+          ) : (
+            <p className="font-display text-lg font-semibold text-ink">Dishu Masala</p>
+          )}
           {storeAddress ? (
             <address className="not-italic text-sm leading-relaxed text-ink-2">
               {storeAddress.businessName}

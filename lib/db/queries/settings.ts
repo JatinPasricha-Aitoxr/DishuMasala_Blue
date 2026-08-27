@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "../index";
 import { settings } from "../schema";
 import { paise, type Paise } from "@/lib/money";
+import { publicUrl } from "@/lib/storage/r2";
 
 /** Shape of the `store_address` settings row — matches scripts/seed.ts exactly. Unknown facts the
  * client hasn't supplied yet (line1, pincode, email) are seeded as the literal string "TODO" and
@@ -93,6 +94,32 @@ export async function getMaintenanceMode(): Promise<boolean> {
   const [row] = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, "maintenance_mode")).limit(1);
   if (row == null || typeof row.value !== "boolean") return false;
   return row.value;
+}
+
+export interface SiteBrandingAsset {
+  r2Key: string;
+  width: number;
+  height: number;
+  alt: string;
+}
+
+export interface SiteBranding {
+  logo: (SiteBrandingAsset & { url: string }) | null;
+  favicon: (SiteBrandingAsset & { url: string }) | null;
+}
+
+/** The real logo + favicon migrated off dishumasala.com (scripts/migrate-brand-assets.ts) —
+ * `null` for either slot until that script has been run, so callers must render the existing
+ * text wordmark as a fallback rather than assume a real asset always exists (same "degrade
+ * honestly, never fake it" discipline as every third-party asset in this project). */
+export async function getSiteBranding(): Promise<SiteBranding> {
+  const [row] = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, "site_branding")).limit(1);
+  const value = row?.value as { logo?: SiteBrandingAsset; favicon?: SiteBrandingAsset } | undefined;
+
+  return {
+    logo: value?.logo ? { ...value.logo, url: publicUrl(value.logo.r2Key) } : null,
+    favicon: value?.favicon ? { ...value.favicon, url: publicUrl(value.favicon.r2Key) } : null,
+  };
 }
 
 /** Every settings row the admin settings page (Phase 7 item 6) reads and edits, in one round
