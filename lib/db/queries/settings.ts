@@ -48,6 +48,23 @@ export async function getStoreAddress(): Promise<StoreAddress | null> {
   return row.value as StoreAddress;
 }
 
+const FALLBACK_STANDARD_SHIPPING_PAISE = paise(5_000); // ₹50 — only used if the settings row is somehow missing.
+
+/** Flat shipping fee in paise charged below the free-shipping threshold, read from `settings`
+ * (never a hardcoded literal at a pricing call site — CLAUDE.md §7.4/§7.5). */
+export async function getStandardShippingPaise(): Promise<Paise> {
+  const [row] = await db
+    .select({ value: settings.value })
+    .from(settings)
+    .where(eq(settings.key, "standard_shipping_paise"))
+    .limit(1);
+
+  if (row == null || typeof row.value !== "number") {
+    return FALLBACK_STANDARD_SHIPPING_PAISE;
+  }
+  return paise(row.value);
+}
+
 /** GSTIN for the footer's tax note — "TODO" as seeded until the client supplies a real one. */
 export async function getGstin(): Promise<string | null> {
   const [row] = await db

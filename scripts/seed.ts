@@ -218,6 +218,16 @@ async function seedSettings(catalog: Catalog): Promise<void> {
       key: "gstin",
       value: "TODO",
     },
+    {
+      // Flat shipping fee charged below the free-shipping threshold. No real rate has been
+      // supplied by the client yet (unlike freeShippingThreshold, catalog.json carries no such
+      // figure) — ₹50 is a placeholder pending confirmation, but it lives here in `settings`
+      // precisely so it is never a literal at any pricing call site (lib/commerce/pricing.ts
+      // reads it the same way it reads the free-shipping threshold) and can be corrected in one
+      // place without a code change once the client confirms a real number.
+      key: "standard_shipping_paise",
+      value: toPaise(50),
+    },
   ];
 
   for (const row of rows) {
@@ -246,7 +256,7 @@ async function main() {
   console.log("  coupon: WELCOME5 upserted");
 
   await seedSettings(catalog);
-  console.log("  settings: 3 rows upserted (free_shipping_threshold_paise, store_address, gstin)");
+  console.log("  settings: 4 rows upserted (free_shipping_threshold_paise, store_address, gstin, standard_shipping_paise)");
 
   console.log("Seed complete.");
 }

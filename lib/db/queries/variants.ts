@@ -1,0 +1,65 @@
+import "server-only";
+
+import { and, eq, inArray } from "drizzle-orm";
+import { db } from "../index";
+import { productImages, products, variants } from "../schema";
+import { paise, type Paise } from "@/lib/money";
+
+/** Everything `lib/commerce/pricing.ts` needs to price one cart line, read fresh from Postgres —
+ * never trusted from a caller (CLAUDE.md §7.5). */
+export interface VariantPricingRow {
+  variantId: number;
+  productId: number;
+  collectionId: number;
+  productName: string;
+  sku: string;
+  optionValue: string;
+  mrpPaise: Paise;
+  pricePaise: Paise;
+  inStock: boolean;
+  stockQty: number | null;
+  imageR2Key: string | null;
+}
+
+/**
+ * The one place a variant's price is read for money maths — `lib/commerce/pricing.ts` calls this
+ * (via its default deps), never a caller-supplied price. Two round trips (variant+product, then
+ * each product's primary image), never N+1 per line.
+ */
+export async function getVariantsForPricing(ids: number[]): Promise<VariantPricingRow[]> {
+  const uniqueIds = Array.from(new Set(ids));
+  if (uniqueIds.length === 0) return [];
+
+  const rows = await db
+    .select({
+      variantId: variants.id,
+      productId: variants.productId,
+      collectionId: products.collectionId,
+      productName: products.name,
+      sku: variants.sku,
+      optionValue: variants.optionValue,
+      mrpPaise: variants.mrpPaise,
+      pricePaise: variants.pricePaise,
+      inStock: variants.inStock,
+      stockQty: variants.stockQty,
+    })
+    .from(variants)
+    .innerJoin(products, eq(products.id, variants.productId))
+    .where(inArray(variants.id, uniqueIds));
+
+  const productIds = Array.from(new Set(rows.map((r) => r.productId)));
+  const images = productIds.length
+    ? await db
+        .select({ productId: productImages.productId, r2Key: productImages.r2Key })
+        .from(productImages)
+        .where(and(inArray(productImages.productId, productIds), eq(productImages.isPrimary, true)))
+    : [];
+  const imageByProduct = new Map(images.map((i) => [i.productId, i.r2Key]));
+
+  return rows.map((r) => ({
+    ...r,
+    mrpPaise: paise(r.mrpPaise),
+    pricePaise: paise(r.pricePaise),
+    imageR2Key: imageByProduct.get(r.productId) ?? null,
+  }));
+}

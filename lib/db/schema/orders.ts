@@ -25,6 +25,11 @@ export const orderNumberSeq = pgSequence("order_number_seq", {
 export const orders = pgTable("orders", {
   id: integer().generatedAlwaysAsIdentity().primaryKey(),
   orderNumber: text("order_number").notNull(),
+  // Client-generated (e.g. a UUID minted once per checkout attempt and reused across retries),
+  // required and unique — the real DB-level guarantee that a double-submitted checkout (network
+  // retry, double-click) can never create two order rows (CLAUDE.md §7.5). A disabled-button
+  // debounce alone is not enough: this is enforced by Postgres itself via the unique index below.
+  idempotencyKey: text("idempotency_key").notNull(),
   // Nullable — guest checkout is allowed (CLAUDE.md §9 / PRD §5.4).
   userId: integer("user_id").references(() => users.id, { onDelete: "set null" }),
   email: text().notNull(),
@@ -52,6 +57,12 @@ export const orders = pgTable("orders", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   uniqueIndex("orders_order_number_uniq").on(t.orderNumber),
+  uniqueIndex("orders_idempotency_key_uniq").on(t.idempotencyKey),
+  // Postgres unique indexes treat NULLs as distinct, so many orders may have no razorpay payment
+  // id yet (COD, or pending prepaid orders) — but the moment one is set, it can belong to exactly
+  // one order. This is the DB-enforced guarantee the payment webhook's idempotent handling relies
+  // on (CLAUDE.md §7.5 / PROMPTS.md Phase 5 item 7): the same payment can never be attached twice.
+  uniqueIndex("orders_razorpay_payment_id_uniq").on(t.razorpayPaymentId),
   index("orders_status_placed_at_idx").on(t.status, t.placedAt),
   index("orders_user_id_idx").on(t.userId),
 ]);
