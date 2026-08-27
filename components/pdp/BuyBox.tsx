@@ -4,6 +4,7 @@ import { useId, useMemo, useState } from "react";
 import { PriceBlock } from "@/components/ui/PriceBlock";
 import { QuantityStepper } from "@/components/ui/QuantityStepper";
 import { Button } from "@/components/ui/Button";
+import { useWishlistToggle } from "@/lib/hooks/useWishlistToggle";
 import { cn } from "@/lib/cn";
 import type { Variant } from "@/types/catalog";
 
@@ -15,6 +16,7 @@ export interface AddToCartPayload {
 }
 
 export interface BuyBoxProps {
+  productId: number;
   productName: string;
   optionLabel: string;
   variants: Variant[];
@@ -42,6 +44,7 @@ function StockLine({ variant }: { variant: Variant }) {
 }
 
 export function BuyBox({
+  productId,
   productName,
   optionLabel,
   variants,
@@ -52,7 +55,7 @@ export function BuyBox({
 }: BuyBoxProps) {
   const [variantId, setVariantId] = useState(variants[0]?.id);
   const [qty, setQty] = useState(1);
-  const [wishlisted, setWishlisted] = useState(false);
+  const { wishlisted, toggle: toggleWishlist } = useWishlistToggle(productId);
   const [justAdded, setJustAdded] = useState(false);
   const groupName = useId();
 
@@ -150,7 +153,7 @@ export function BuyBox({
         </Button>
         <button
           type="button"
-          onClick={() => setWishlisted((v) => !v)}
+          onClick={toggleWishlist}
           aria-pressed={wishlisted}
           aria-label={wishlisted ? `Remove ${productName} from wishlist` : `Add ${productName} to wishlist`}
           className="flex size-11 shrink-0 items-center justify-center rounded-md border border-line text-ink hover:bg-surface-2"

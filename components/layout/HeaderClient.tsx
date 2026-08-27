@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerTitle, DrawerTrigger } from "@/components/ui/Drawer";
 import { GRADIENT_TILE_SLUGS, type MegaMenuColumn } from "@/lib/nav";
 import { cn } from "@/lib/cn";
 import { formatINR, type Paise } from "@/lib/money";
 import { useCartStore, selectItemCount } from "@/lib/store/cart";
+import { useWishlistStore, selectWishlistCount } from "@/lib/store/wishlist";
+import { getWishlistProductIdsAction } from "@/lib/actions/wishlist";
 
 const ANNOUNCEMENT_DISMISSED_KEY = "dm-announcement-dismissed";
 
@@ -97,10 +100,31 @@ function IconCountButton({
 export function HeaderClient({ columns, freeShippingThresholdPaise }: HeaderClientProps) {
   const cartCount = useCartStore(selectItemCount);
   const openCart = useCartStore((s) => s.open);
+  const { status } = useSession();
+  const isSignedIn = status === "authenticated";
+  const localWishlistCount = useWishlistStore(selectWishlistCount);
+  const [dbWishlistCount, setDbWishlistCount] = useState<number | null>(null);
   const [dismissed, setDismissed] = useState(false);
   const [condensed, setCondensed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+
+  // Header wishlist count reflects whichever source currently applies (PROMPTS.md Phase 6 item 4):
+  // DB-backed when signed in, localStorage when not. `dbWishlistCount` is simply never read while
+  // signed out (see `wishlistCount` below), so there's nothing to reset in that branch — this
+  // effect only ever subscribes to the DB count while there's a session to fetch it for.
+  useEffect(() => {
+    if (!isSignedIn) return;
+    let cancelled = false;
+    void getWishlistProductIdsAction().then((ids) => {
+      if (!cancelled) setDbWishlistCount(ids.length);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isSignedIn]);
+
+  const wishlistCount = isSignedIn ? (dbWishlistCount ?? 0) : localWishlistCount;
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -346,8 +370,8 @@ export function HeaderClient({ columns, freeShippingThresholdPaise }: HeaderClie
                 <SearchIcon />
               </button>
             )}
-            <IconCountButton icon={<AccountIcon />} label="Account" count={0} href="/account/" />
-            <IconCountButton icon={<WishlistIcon />} label="Wishlist" count={0} href="/wishlist/" />
+            <IconCountButton icon={<AccountIcon />} label="Account" count={0} href="/account" />
+            <IconCountButton icon={<WishlistIcon />} label="Wishlist" count={wishlistCount} href="/account/wishlist" />
             <IconCountButton
               icon={<CartIcon />}
               label="Cart"
@@ -395,12 +419,12 @@ export function HeaderClient({ columns, freeShippingThresholdPaise }: HeaderClie
           </nav>
           <div className="mt-8 flex flex-col gap-1 border-t border-line pt-5">
             <DrawerClose asChild>
-              <Link href="/account/" className="py-2 text-sm font-medium text-ink-2">
+              <Link href="/account" className="py-2 text-sm font-medium text-ink-2">
                 Account
               </Link>
             </DrawerClose>
             <DrawerClose asChild>
-              <Link href="/wishlist/" className="py-2 text-sm font-medium text-ink-2">
+              <Link href="/account/wishlist" className="py-2 text-sm font-medium text-ink-2">
                 Wishlist
               </Link>
             </DrawerClose>

@@ -13,6 +13,7 @@ export function toProductCardProps(product: ProductCardData): ProductCardProps {
   const primary = product.variants[0];
 
   return {
+    productId: product.id,
     slug: product.slug,
     name: product.name,
     collectionSlug: product.collectionSlug,

@@ -8,6 +8,7 @@ import { getOrderByIdempotencyKey, getOrderById } from "@/lib/db/queries/orders"
 import { getRazorpayClient } from "@/lib/razorpay/client";
 import { runOrderConfirmedSideEffects } from "@/lib/commerce/order-fulfillment";
 import { buildOrderConfirmationUrl } from "@/lib/order-token";
+import { getSessionUser } from "@/lib/auth/session";
 
 function confirmationUrlFor(orderNumber: string, email: string): string {
   return buildOrderConfirmationUrl(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000", orderNumber, email);
@@ -112,6 +113,12 @@ export async function POST(req: Request): Promise<NextResponse> {
       });
     }
 
+    // Attaches the order to the signed-in shopper when a session exists (PROMPTS.md Phase 6 —
+    // previously always null, since accounts didn't exist yet) so /account/orders has real data.
+    // Guest checkout stays fully supported: no session simply means userId stays null, exactly
+    // like every order before this phase.
+    const sessionUser = await getSessionUser();
+
     const createResult = await createOrderTransaction({
       idempotencyKey: input.idempotencyKey,
       email: input.email,
@@ -121,6 +128,7 @@ export async function POST(req: Request): Promise<NextResponse> {
       billingAddress: input.billingAddress ?? null,
       customerNote: input.customerNote ?? null,
       pricing,
+      userId: sessionUser?.id ?? null,
     });
 
     if (!createResult.ok) {

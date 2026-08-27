@@ -4,6 +4,8 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { ToastProvider } from "@/components/ui/Toast";
 import { CartDrawer } from "@/components/cart/CartDrawer";
+import { SessionProvider } from "@/components/providers/SessionProvider";
+import { AccountSync } from "@/components/auth/AccountSync";
 import "./globals.css";
 
 // Fraunces is a genuinely variable Google font (wght 100–900 plus an optical-size axis) — loading
@@ -48,14 +50,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
-        <ToastProvider>
-          <Header />
-          <main id="main-content" className="flex-1">
-            {children}
-          </main>
-          <Footer />
-          <CartDrawer />
-        </ToastProvider>
+        <SessionProvider>
+          <ToastProvider>
+            <AccountSync />
+            <Header />
+            <main id="main-content" className="flex-1">
+              {children}
+            </main>
+            <Footer />
+            <CartDrawer />
+          </ToastProvider>
+        </SessionProvider>
       </body>
     </html>
   );

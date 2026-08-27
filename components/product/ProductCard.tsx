@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { PriceBlock } from "@/components/ui/PriceBlock";
 import { Rating } from "@/components/ui/Rating";
 import { Placeholder } from "@/components/media/Placeholder";
 import { familyAccentVar, resolveFamilyAccent } from "@/lib/family-accent";
+import { useWishlistToggle } from "@/lib/hooks/useWishlistToggle";
 import { cn } from "@/lib/cn";
 import type { Paise } from "@/lib/money";
 
@@ -17,6 +17,10 @@ export interface ProductCardImage {
 }
 
 export interface ProductCardProps {
+  /** The product's numeric id — real card usages (lib/product-card.ts) always pass it; only the
+   * /design-system showcase omits it, since its examples aren't real products and have nothing to
+   * wishlist against. */
+  productId?: number;
   slug: string;
   name: string;
   collectionSlug: string;
@@ -41,6 +45,7 @@ export interface ProductCardProps {
 }
 
 export function ProductCard({
+  productId,
   slug,
   name,
   collectionSlug,
@@ -52,19 +57,27 @@ export function ProductCard({
   pricePaise,
   images = [],
   rating,
-  wishlisted = false,
+  wishlisted,
   onToggleWishlist,
   onQuickAdd,
   className,
 }: ProductCardProps) {
-  const [wishlistedState, setWishlistedState] = useState(wishlisted);
+  // Real wishlist state (PROMPTS.md Phase 6 item 4) when a productId is known; the `wishlisted`/
+  // `onToggleWishlist` props stay as an explicit override for callers that want to control it
+  // themselves (e.g. a future admin preview), and as the fallback for /design-system's synthetic
+  // examples, which have no real product to wishlist against.
+  const real = useWishlistToggle(productId);
+  const wishlistedState = wishlisted ?? real.wishlisted;
   const accent = familyAccentVar(resolveFamilyAccent(collectionSlug, tags));
   const [primary, secondary] = images;
   const href = `/product/${slug}/`;
 
   const toggleWishlist = () => {
-    setWishlistedState((v) => !v);
-    onToggleWishlist?.();
+    if (onToggleWishlist) {
+      onToggleWishlist();
+    } else {
+      real.toggle();
+    }
   };
 
   return (

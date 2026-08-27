@@ -65,6 +65,7 @@ export function PdpInteractive({
     <>
       <div id={BUY_BOX_ID}>
         <BuyBox
+          productId={productId}
           productName={productName}
           optionLabel={optionLabel}
           variants={variants}

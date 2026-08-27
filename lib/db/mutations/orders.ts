@@ -36,6 +36,10 @@ export interface CreateOrderInput {
   billingAddress: OrderAddress | null;
   customerNote: string | null;
   pricing: PricingResult;
+  /** The signed-in shopper's id, when checkout happens with a session (PROMPTS.md Phase 6 —
+   * previously always null since accounts didn't exist yet). Still nullable: guest checkout is
+   * explicitly allowed (CLAUDE.md §9 / PRD §5.4) and stays so even now that accounts exist. */
+  userId: number | null;
 }
 
 export type CreateOrderResult =
@@ -76,6 +80,7 @@ export async function createOrderTransaction(input: CreateOrderInput): Promise<C
         .values({
           orderNumber,
           idempotencyKey: input.idempotencyKey,
+          userId: input.userId,
           email: input.email,
           phone: input.phone,
           status: initialStatus,
@@ -137,12 +142,14 @@ export async function createOrderTransaction(input: CreateOrderInput): Promise<C
           .limit(1);
         if (couponRow) {
           await tx.update(coupons).set({ usedCount: sql`${coupons.usedCount} + 1` }).where(eq(coupons.id, couponRow.id));
-          // userId is required by the schema but there's no auth yet (guest checkout, Phase 6) —
-          // coupon_redemptions.user_id is genuinely not nullable, so we can't record a redemption
-          // row for a guest without a user account; guest-level per-user enforcement instead reads
-          // coupon_redemptions joined through orders.email (lib/db/queries/coupons.ts), which needs
-          // no user_id at all. Redemption rows here are for signed-in users only (Phase 6+); guests
-          // are still correctly rate-limited via the email-based query.
+          // coupon_redemptions.user_id is genuinely not nullable, so a redemption row can only be
+          // recorded when checkout happened with a real session (PROMPTS.md Phase 6 — previously
+          // always null, since accounts didn't exist yet). Guest-level per-user enforcement still
+          // works with no user_id at all, via the email-based query in lib/db/queries/coupons.ts —
+          // this is purely an additional record for signed-in shoppers, not a new enforcement path.
+          if (input.userId != null) {
+            await tx.insert(couponRedemptions).values({ couponId: couponRow.id, orderId: orderRow.id, userId: input.userId });
+          }
         }
       }
 
