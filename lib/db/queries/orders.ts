@@ -1,6 +1,6 @@
 import "server-only";
 
-import { asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { db } from "../index";
 import { orderItems, orders } from "../schema";
 import { paise } from "@/lib/money";
@@ -81,4 +81,39 @@ export async function getOrderByRazorpayOrderId(razorpayOrderId: string): Promis
 
 export async function getOrderById(orderId: number): Promise<Order | null> {
   return loadOrderWithItems(orderId);
+}
+
+/**
+ * Account order list — filtered by `userId` at the SQL level (PROMPTS.md Phase 6 item 3:
+ * "assert userId in every query"), never fetched broadly and filtered in application code.
+ */
+export async function getOrdersForUser(userId: number): Promise<Order[]> {
+  const rows = await db.select().from(orders).where(eq(orders.userId, userId)).orderBy(desc(orders.placedAt));
+  if (rows.length === 0) return [];
+  const items = await db
+    .select()
+    .from(orderItems)
+    .where(inArray(orderItems.orderId, rows.map((r) => r.id)))
+    .orderBy(asc(orderItems.id));
+  return rows.map((row) => toOrder(row, items.filter((i) => i.orderId === row.id)));
+}
+
+/**
+ * A single order detail, but ONLY when it belongs to `userId` — the WHERE clause checks
+ * `orders.user_id = userId` in the same query as `orders.order_number = orderNumber`, never
+ * `orderNumber` alone with an application-level ownership check bolted on after (PROMPTS.md
+ * Phase 6 item 3: "must NEVER trust an id embedded in a URL as sufficient authorization"). A
+ * nonexistent order number and someone else's real order are indistinguishable here — both
+ * return null — so the caller (app/account/orders/[orderNumber]/page.tsx) 404s identically for
+ * both, giving no signal about which order numbers are real (same no-enumeration discipline as
+ * the guest order-token flow).
+ */
+export async function getOrderForUserByOrderNumber(orderNumber: string, userId: number): Promise<Order | null> {
+  const [row] = await db
+    .select({ id: orders.id })
+    .from(orders)
+    .where(and(eq(orders.orderNumber, orderNumber), eq(orders.userId, userId)))
+    .limit(1);
+  if (!row) return null;
+  return loadOrderWithItems(row.id);
 }

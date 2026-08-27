@@ -18,6 +18,8 @@ import PaymentReceivedEmail from "@/emails/PaymentReceived";
 import OrderShippedEmail from "@/emails/OrderShipped";
 import OrderDeliveredEmail from "@/emails/OrderDelivered";
 import OrderCancelledEmail from "@/emails/OrderCancelled";
+import VerifyEmail from "@/emails/VerifyEmail";
+import ResetPasswordEmail from "@/emails/ResetPassword";
 import type { Order } from "@/types/order";
 
 const FROM_ADDRESS = process.env.EMAIL_FROM || "Dishu Food and Beverages <orders@dishumasala.com>";
@@ -78,4 +80,14 @@ export async function sendOrderDeliveredEmail(order: Order): Promise<EmailSendRe
 
 export async function sendOrderCancelledEmail(order: Order, reason?: string | null): Promise<EmailSendResult> {
   return send(order.email, `Order cancelled — ${order.orderNumber}`, OrderCancelledEmail({ order, reason }), "order-cancelled");
+}
+
+/** Account emails (PROMPTS.md Phase 6 item 1) — same degrade-to-log-not-send behaviour as every
+ * order email above when RESEND_API_KEY isn't configured (true in this dev environment). */
+export async function sendVerifyEmail(to: string, name: string, verifyUrl: string): Promise<EmailSendResult> {
+  return send(to, "Verify your email — Dishu Masala", VerifyEmail({ verifyUrl, name }), "verify-email");
+}
+
+export async function sendResetPasswordEmail(to: string, name: string, resetUrl: string): Promise<EmailSendResult> {
+  return send(to, "Reset your password — Dishu Masala", ResetPasswordEmail({ resetUrl, name }), "reset-password");
 }
