@@ -16,6 +16,8 @@ import type { PricingIssue, PricingLine, PricingResult } from "@/lib/commerce/pr
 function line(overrides: Partial<CartLine> = {}): CartLine {
   return {
     variantId: 1,
+    productId: 1,
+    priority: 1,
     qty: 1,
     productName: "Blue Tea",
     optionValue: "500g",

@@ -20,6 +20,10 @@ import type { PricingResult } from "@/lib/commerce/pricing";
 
 export interface CartLine {
   variantId: number;
+  productId: number;
+  /** The product's own priority (CLAUDE.md §7.2) — display-only, used to sort/filter the cart's
+   * upsell rail; kept in sync from every server revalidation, never computed client-side. */
+  priority: number;
   qty: number;
   productName: string;
   optionValue: string;
@@ -36,6 +40,8 @@ export interface CartNotice {
 
 interface AddItemInput {
   variantId: number;
+  productId: number;
+  priority: number;
   qty: number;
   productName: string;
   optionValue: string;
@@ -165,7 +171,9 @@ export function applyPricingCorrections(
   }
   next = next.map((l) => {
     const priced = pricing.lines.find((p) => p.variantId === l.variantId);
-    return priced ? { ...l, unitPricePaise: priced.unitPricePaise, mrpPaise: priced.mrpPaise } : l;
+    return priced
+      ? { ...l, unitPricePaise: priced.unitPricePaise, mrpPaise: priced.mrpPaise, productId: priced.productId, priority: priced.priority }
+      : l;
   });
 
   return { lines: next, notices, couponRejected };

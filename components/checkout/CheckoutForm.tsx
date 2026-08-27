@@ -12,6 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/RadioGroup";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select";
 import { RazorpayButton } from "./RazorpayButton";
 import { OrderSummary } from "@/components/cart/OrderSummary";
+import { CouponField } from "@/components/cart/CouponField";
 import { CartNotices } from "@/components/cart/CartNotices";
 import { INDIAN_STATES } from "@/lib/commerce/address";
 import { checkPincodeAction } from "@/lib/actions/pincode";
@@ -69,6 +70,7 @@ export function CheckoutForm() {
     trigger,
     watch,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -98,7 +100,15 @@ export function CheckoutForm() {
   }, [pincode]);
 
   const goToStep = async (target: Step) => {
-    if (target === "address" && !(await trigger(CONTACT_FIELDS))) return;
+    if (target === "address") {
+      if (!(await trigger(CONTACT_FIELDS))) return;
+      // Set the cart's guest identity as soon as it's known (not only at final submit) — coupon
+      // rules like WELCOME5's first-order-only check (lib/commerce/pricing.ts) need an email to
+      // evaluate at all, and the coupon field is reachable from here on (checkout's sticky
+      // summary) before the shopper ever reaches the Payment step.
+      setEmail(getValues("email"));
+      void revalidate();
+    }
     if (target === "payment" && !(await trigger([...CONTACT_FIELDS, ...ADDRESS_FIELDS]))) return;
     setStep(target);
   };
@@ -329,7 +339,7 @@ export function CheckoutForm() {
                   />
                 ) : (
                   <Button type="submit" variant="gradient" size="lg" loading={submitState.kind === "submitting"} disabled={itemCount === 0}>
-                    {paymentMethod === "cod" ? "Place order" : "Continue to payment"}
+                    {paymentMethod === "cod" ? "Place order" : "Continue to pay"}
                   </Button>
                 )}
               </div>
@@ -338,8 +348,9 @@ export function CheckoutForm() {
         </Accordion>
       </form>
 
-      <aside className="rounded-lg border border-line bg-surface p-5 lg:sticky lg:top-24 lg:self-start">
-        <h2 className="mb-3 font-display text-lg font-semibold text-ink">Order summary ({itemCount})</h2>
+      <aside className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5 lg:sticky lg:top-24 lg:self-start">
+        <h2 className="font-display text-lg font-semibold text-ink">Order summary ({itemCount})</h2>
+        <CouponField />
         <OrderSummary pricing={pricing} />
       </aside>
     </div>

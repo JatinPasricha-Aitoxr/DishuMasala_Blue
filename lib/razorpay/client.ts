@@ -47,9 +47,22 @@ class HttpRazorpayClient implements RazorpayClient {
 
 export class RazorpayApiError extends Error {}
 
+/**
+ * TEST-ONLY escape hatch: lets an e2e test inject a fake `RazorpayClient` (no real network call)
+ * so a full browse→checkout→pay→verify→confirmation flow can be exercised end to end without a
+ * real Razorpay account, per PROMPTS.md's "exercised in tests with a fake/mocked Razorpay"
+ * requirement. Only reachable via app/api/__test__/razorpay-mock/route.ts, which 404s outright
+ * whenever `NODE_ENV === "production"` — no real request path ever calls this function.
+ */
+let testOverrideClient: RazorpayClient | null | undefined = undefined;
+export function __setTestRazorpayClient(client: RazorpayClient | null | undefined): void {
+  testOverrideClient = client;
+}
+
 /** Returns null — not a throw — when RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET aren't configured, so
  * every call site is forced to handle "payments unavailable" as a normal, expected outcome. */
 export function getRazorpayClient(): RazorpayClient | null {
+  if (testOverrideClient !== undefined) return testOverrideClient;
   const keyId = process.env.RAZORPAY_KEY_ID;
   const keySecret = process.env.RAZORPAY_KEY_SECRET;
   if (!keyId || !keySecret) return null;
