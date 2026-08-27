@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductGrid } from "@/components/shop/ProductGrid";
+import { PromoBannerSlider } from "@/components/hero/PromoBannerSlider";
+import { CollectionFaq } from "@/components/sections/CollectionFaq";
 import { getAllCollectionSlugs, getCollectionBySlug } from "@/lib/db/queries/collections";
 import { getPublishedProductsByCollectionSlug } from "@/lib/db/queries/products";
+import { getCollectionPageBanner } from "@/lib/db/queries/settings";
 import { GRADIENT_TILE_SLUGS } from "@/lib/nav";
 import { resolveFamilyAccent, familyAccentVar } from "@/lib/family-accent";
 import { formatINR, type Paise } from "@/lib/money";
@@ -114,10 +117,16 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
   const collection = await getCollectionBySlug(slug);
   if (!collection) notFound();
 
-  const products = await getPublishedProductsByCollectionSlug(slug);
+  const [products, pageBanner] = await Promise.all([
+    getPublishedProductsByCollectionSlug(slug),
+    getCollectionPageBanner(slug),
+  ]);
 
   return (
     <div>
+      {pageBanner.length > 0 && (
+        <PromoBannerSlider banners={pageBanner} ariaLabel={`${collection.title} promotions`} />
+      )}
       <CollectionHeader
         title={collection.title}
         tagline={collection.tagline}
@@ -146,6 +155,8 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
           </>
         )}
       </div>
+
+      <CollectionFaq collectionSlug={collection.slug} collectionTitle={collection.title} />
     </div>
   );
 }

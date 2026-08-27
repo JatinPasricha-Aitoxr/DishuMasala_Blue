@@ -183,6 +183,15 @@ export async function getClassicTeaSectionBanner(): Promise<HomepageBanner[]> {
   return getBannerSet("classic_tea_section_banner");
 }
 
+/** A collection page's own top-of-page hero banner (e.g. /collections/combos —
+ * scripts/migrate-combos-page-banner.ts saves `settings["combos_page_banner"]`). Generic by
+ * collection slug rather than one named function per collection, since only Combos has one today
+ * but any collection could get one later the same way. Empty array (not an error) for a
+ * collection with no banner migrated yet. */
+export async function getCollectionPageBanner(collectionSlug: string): Promise<HomepageBanner[]> {
+  return getBannerSet(`${collectionSlug.replace(/-/g, "_")}_page_banner`);
+}
+
 export interface SectionImage {
   r2Key: string;
   width: number;
