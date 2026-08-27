@@ -172,6 +172,11 @@ export async function getRedTeaSectionBanner(): Promise<HomepageBanner[]> {
   return getBannerSet("red_tea_section_banner");
 }
 
+/** The banner shown at the top of the homepage's Spices section (scripts/migrate-spices-banner.ts). */
+export async function getSpicesSectionBanner(): Promise<HomepageBanner[]> {
+  return getBannerSet("spices_section_banner");
+}
+
 export interface SectionImage {
   r2Key: string;
   width: number;

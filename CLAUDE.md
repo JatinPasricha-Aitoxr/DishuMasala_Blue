@@ -340,15 +340,23 @@ and no quantity is ever shown. Only when a real count exists and is under 10 may
   mentions, or health and medicinal claims. Trust claims ship only with what is verifiable:
   double-layer packaging, free shipping over ₹500, sourced in Punjab, COD available. If the client
   wants more, they supply it in writing.
-- **Logged exception (2026-08-28):** the homepage promotional slider
-  (`components/hero/PromoBannerSlider.tsx`, `scripts/migrate-homepage-banners.ts`) uses two
-  client-supplied banner images as-is, with the client's own marketing text — including
-  health-adjacent phrasing this project would never write itself — baked directly into the image
-  pixels. Claude flagged the conflict with this section directly to the client stakeholder before
-  building it; the client explicitly chose to use the banners unedited. This is a one-off,
-  client-directed exception for that specific slider, not a change to the rule above — new content
-  this project writes itself (copy, accordions, policy pages, future banners) still follows every
-  constraint in this section unless the client makes the same explicit call again.
+- **Logged exception (2026-08-28, standing for this project):** several homepage banner sections
+  (`PromoBannerSlider` instances — the top homepage slider, the Red Tea section banner, the Spices
+  section banner) use client-supplied images as-is, with the client's own marketing text —
+  including health/certification-adjacent phrasing this project would never write itself ("Belly
+  Fat Reduction & Slimming", "Aids Digestion") — baked directly into the image pixels. Claude
+  flagged the conflict with this section directly to the client stakeholder before building the
+  first one; the client explicitly chose to use the banners unedited, and this has now recurred
+  consistently enough across multiple banners that it's treated as a standing decision for this
+  project's banner sections specifically, not re-litigated per image.
+  One instance is client-dictated **text**, not an image: the Spices section's marquee separator
+  ("100% Organic · Stone Ground · Zero Preservatives", `components/sections/SpicesBanner.tsx`) — a
+  specific certification-style claim ("100% Organic") with no organic-certification data behind it
+  in this project, authored directly into the codebase rather than placed as a pre-made client
+  image. Flagged once, then treated on the same standing basis as the banner images above.
+  This does not change the rule for content this project writes on its own initiative — copy,
+  accordions, policy pages, and any new claim Claude itself proposes still follow every constraint
+  in this section unless the client makes the same explicit call again.
 
 ---
 
