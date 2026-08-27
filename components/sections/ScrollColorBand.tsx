@@ -18,35 +18,51 @@ function lerpRgb(a: Rgb, b: Rgb, t: number): string {
   return `rgb(${r} ${g} ${bl})`;
 }
 
+/** Piecewise-linear sample of N colour stops (evenly spaced across 0–1) at position `t`. */
+function sampleStops(stops: Rgb[], t: number): string {
+  const clamped = Math.max(0, Math.min(1, t));
+  const n = stops.length - 1;
+  const segment = Math.min(n - 1, Math.floor(clamped * n));
+  const localT = clamped * n - segment;
+  return lerpRgb(stops[segment], stops[segment + 1], localT);
+}
+
 export interface ScrollColorBandProps {
   /** CSS custom property names (e.g. "--color-brew-2"), not raw hex — resolved at runtime via
    * getComputedStyle so this component never hardcodes a colour literal (CLAUDE.md §5.2's tokens
-   * stay the single source of truth; a grep for hex literals across components/ must stay empty). */
+   * stay the single source of truth; a grep for hex literals across components/ must stay empty).
+   * Two stops (fromVar/toVar) or three (fromVar/viaVar/toVar). */
   fromVar: string;
+  viaVar?: string;
   toVar: string;
   children: React.ReactNode;
   className?: string;
 }
 
 /**
- * A section background that shifts colour as it scrolls through the viewport — the "Lemon Shift"
- * idea (blue turning toward magenta/red) applied to the Blue Tea → Red Tea section handoff per
- * client request, rather than the removed hero. Progress `t` is 0 when the section's top edge is
- * at the bottom of the viewport (about to enter) and 1 when its bottom edge reaches the top of the
- * viewport (about to leave) — one full pass down the page shifts the colour the whole way from
- * `fromVar` to `toVar`. Two sections using matching endpoints (this one's `toVar` = the next one's
- * `fromVar`) read as one continuous colour journey down the page.
+ * A background that shifts colour as it scrolls through the viewport — the "Lemon Shift" idea
+ * (blue turning toward magenta/red) applied to the Blue Tea → Red Tea section handoff per client
+ * request, rather than the removed hero. Progress `t` is 0 when this element's top edge is at the
+ * bottom of the viewport (about to enter) and 1 when its bottom edge reaches the top of the
+ * viewport (about to leave).
  *
- * Renders a two-stop gradient (sampling slightly behind and ahead of `t`), not a flat fill — the
- * two colours visibly blend into each other at every scroll position (client request: "pink and
- * red should also gradiently mix"), the same way the two sections' matching endpoints blend across
- * the section boundary.
+ * **Wrap BOTH sections in a single instance of this component** (fromVar=blue, viaVar=pink,
+ * toVar=red), don't use two separate instances stitched at their edges — two independently
+ * scroll-tracked gradients (one per section) can't be guaranteed to agree at the exact shared
+ * pixel row on every frame, since each section reads its own, differently-sized bounding box, and
+ * that produced a visible seam/discontinuity at the handoff. One element spanning both sections'
+ * full height makes the transition a single continuous canvas by construction — no seam is
+ * possible because there's only one gradient, not two.
+ *
+ * Renders a soft two-tone gradient (sampling slightly behind/ahead of `t` along the stop
+ * sequence), not a flat fill, so colours visibly blend into each other rather than sitting as flat
+ * fills (client request: "pink and red should also gradiently mix").
  *
  * `prefers-reduced-motion: reduce` renders a static, finished `fromVar` background instead of
  * tracking scroll (CLAUDE.md §5.5) — a real, intentional brand colour, not a broken/frozen mid-tween
  * state.
  */
-export function ScrollColorBand({ fromVar, toVar, children, className }: ScrollColorBandProps) {
+export function ScrollColorBand({ fromVar, viaVar, toVar, children, className }: ScrollColorBandProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -55,10 +71,11 @@ export function ScrollColorBand({ fromVar, toVar, children, className }: ScrollC
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const style = getComputedStyle(document.documentElement);
-    const from = hexToRgb(style.getPropertyValue(fromVar));
-    const to = hexToRgb(style.getPropertyValue(toVar));
+    const stops = [fromVar, viaVar, toVar]
+      .filter((v): v is string => Boolean(v))
+      .map((v) => hexToRgb(style.getPropertyValue(v)));
 
-    const SPREAD = 0.22;
+    const SPREAD = 0.16;
     let ticking = false;
     const update = () => {
       const rect = el.getBoundingClientRect();
@@ -66,9 +83,9 @@ export function ScrollColorBand({ fromVar, toVar, children, className }: ScrollC
       const total = Math.max(1, rect.height + vh);
       const scrolled = vh - rect.top;
       const t = Math.max(0, Math.min(1, scrolled / total));
-      const near = lerpRgb(from, to, Math.max(0, t - SPREAD));
-      const far = lerpRgb(from, to, Math.min(1, t + SPREAD));
-      el.style.backgroundImage = `linear-gradient(100deg, ${near}, ${far})`;
+      const near = sampleStops(stops, Math.max(0, t - SPREAD));
+      const far = sampleStops(stops, Math.min(1, t + SPREAD));
+      el.style.backgroundImage = `linear-gradient(180deg, ${near}, ${far})`;
     };
     const onScroll = () => {
       if (ticking) return;
@@ -86,7 +103,7 @@ export function ScrollColorBand({ fromVar, toVar, children, className }: ScrollC
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, [fromVar, toVar]);
+  }, [fromVar, viaVar, toVar]);
 
   return (
     <div ref={ref} className={className} style={{ backgroundColor: `var(${fromVar})` }}>

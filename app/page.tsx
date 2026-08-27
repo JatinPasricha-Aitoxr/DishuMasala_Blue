@@ -1,10 +1,11 @@
 import { getCollectionsWithStats } from "@/lib/db/queries/collections";
 import { getPublishedProductsByCollectionSlug } from "@/lib/db/queries/products";
-import { getHomepageBanners, getRedTeaSectionBanner } from "@/lib/db/queries/settings";
+import { getHomepageBanners, getRedTeaSectionBanner, getRedTeaLifestyleImage } from "@/lib/db/queries/settings";
 import { PromoBannerSlider } from "@/components/hero/PromoBannerSlider";
 import { TrustStrip } from "@/components/layout/TrustStrip";
 import { BlueTeaBand } from "@/components/sections/BlueTeaBand";
 import { RedTeaSection } from "@/components/sections/RedTeaSection";
+import { ScrollColorBand } from "@/components/sections/ScrollColorBand";
 import { ComboValue } from "@/components/sections/ComboValue";
 import { SpicesGrid } from "@/components/sections/SpicesGrid";
 import { ClassicAssamStrip } from "@/components/sections/ClassicAssamStrip";
@@ -25,7 +26,7 @@ import { NewsletterSection } from "@/components/sections/NewsletterSection";
  * file or components/sections/* hardcodes a name, price or image URL.
  */
 export default async function Home() {
-  const [collections, blueTea, redTea, combos, spices, classicAssam, banners, redTeaBanner] = await Promise.all([
+  const [collections, blueTea, redTea, combos, spices, classicAssam, banners, redTeaBanner, redTeaLifestyle] = await Promise.all([
     getCollectionsWithStats(),
     getPublishedProductsByCollectionSlug("blue-tea"),
     getPublishedProductsByCollectionSlug("red-tea"),
@@ -34,6 +35,7 @@ export default async function Home() {
     getPublishedProductsByCollectionSlug("classic-teas"),
     getHomepageBanners(),
     getRedTeaSectionBanner(),
+    getRedTeaLifestyleImage(),
   ]);
 
   // The one part of CLAUDE.md §7.2 this file's fixed section order can't re-derive on its own is
@@ -54,8 +56,10 @@ export default async function Home() {
     <>
       <PromoBannerSlider banners={banners} />
       <TrustStrip />
-      <BlueTeaBand products={blueTea} />
-      <RedTeaSection products={redTea} />
+      <ScrollColorBand fromVar="--color-brew-2" viaVar="--color-brew-5" toVar="--color-hibiscus" className="w-full">
+        <BlueTeaBand products={blueTea} />
+        <RedTeaSection products={redTea} lifestyleImage={redTeaLifestyle} />
+      </ScrollColorBand>
       <PromoBannerSlider banners={redTeaBanner} ariaLabel="Red Tea promotion" />
       <ComboValue combos={combos} spices={spices} />
       <SpicesGrid products={spices} />

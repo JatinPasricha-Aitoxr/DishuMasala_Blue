@@ -53,7 +53,7 @@ function getClient(): S3Client {
   return cachedClient;
 }
 
-export type R2Prefix = "products" | "reviews" | "posts" | "brand" | "banners";
+export type R2Prefix = "products" | "reviews" | "posts" | "brand" | "banners" | "sections";
 
 /**
  * Key convention (CLAUDE.md §6 / PROMPTS Phase 0 item 7):
@@ -61,8 +61,10 @@ export type R2Prefix = "products" | "reviews" | "posts" | "brand" | "banners";
  * `brand/<id>/<hash>.<ext>` is the same idea for the one-off site-identity assets (logo, favicon
  * source) — `<id>` is a fixed slot name ("logo", "favicon") rather than a per-row database id,
  * since there's exactly one of each. `banners/<slot>/<hash>.<ext>` is the same pattern again for
- * the homepage promotional slider (scripts/migrate-homepage-banners.ts) — client-supplied
- * marketing creative, not derived from `data/catalog.json`.
+ * homepage promotional banners (scripts/_lib/banner-migrate.ts) — client-supplied marketing
+ * creative, not derived from `data/catalog.json`. `sections/<slot>/<hash>.<ext>` is for one-off
+ * editorial/lifestyle imagery inside a specific homepage section (no href, unlike a banner) —
+ * e.g. Red Tea's lifestyle photo replacing its AI-placeholder slot.
  * `variant` lets a caller disambiguate multiple derivatives of the same source image (e.g. a
  * width) without breaking the base convention — the hash still identifies the source content.
  */

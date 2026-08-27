@@ -155,6 +155,24 @@ export async function getRedTeaSectionBanner(): Promise<HomepageBanner[]> {
   return getBannerSet("red_tea_section_banner");
 }
 
+export interface SectionImage {
+  r2Key: string;
+  width: number;
+  height: number;
+  alt: string;
+  url: string;
+}
+
+/** The Red Tea section's real lifestyle photo (scripts/migrate-red-tea-lifestyle.ts), replacing
+ * its AI-placeholder slot. `null` until that script has been run — callers must fall back to the
+ * placeholder rather than assume a real photo always exists. */
+export async function getRedTeaLifestyleImage(): Promise<SectionImage | null> {
+  const [row] = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, "red_tea_lifestyle_image")).limit(1);
+  const value = row?.value as Omit<SectionImage, "url"> | undefined;
+  if (!value) return null;
+  return { ...value, url: publicUrl(value.r2Key) };
+}
+
 /** Every settings row the admin settings page (Phase 7 item 6) reads and edits, in one round
  * trip — the "one typed helper" every settings read in this codebase goes through (grepped and
  * confirmed at the end of Phase 7: no component reads `settings` ad hoc or hardcodes a literal
