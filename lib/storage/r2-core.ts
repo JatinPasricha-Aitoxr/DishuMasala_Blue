@@ -9,7 +9,7 @@
  *     side).
  * Never import this file from app/ or components/ — use lib/storage/r2.ts there instead.
  */
-import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const accountId = process.env.R2_ACCOUNT_ID;
@@ -76,6 +76,25 @@ export async function putObject(key: string, body: Uint8Array | Buffer, contentT
   await getClient().send(
     new PutObjectCommand({ Bucket: bucket, Key: key, Body: body, ContentType: contentType }),
   );
+}
+
+/**
+ * Reads an object back out of R2 — used by the admin image-upload flow (app/admin/products'
+ * finalizeProductImageUpload et al.): the browser PUTs the original file straight to R2 via a
+ * presigned URL (bytes never pass through our server on the way in), then the server fetches it
+ * back here to run the real `sharp` derivative pipeline, exactly as PROMPTS.md Phase 8 item 1
+ * requires ("drag-and-drop upload straight to R2 via a presigned URL ... sharp derivatives
+ * generated server-side").
+ */
+export async function getObject(key: string): Promise<Buffer> {
+  assertConfigured();
+  const result = await getClient().send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+  const body = result.Body;
+  if (!body) throw new Error(`getObject: no body for key "${key}"`);
+  const chunks: Uint8Array[] = [];
+  // @ts-expect-error -- the SDK's Body is a Node Readable at runtime in this environment.
+  for await (const chunk of body) chunks.push(chunk);
+  return Buffer.concat(chunks);
 }
 
 export async function deleteObject(key: string): Promise<void> {

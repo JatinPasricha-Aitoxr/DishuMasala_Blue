@@ -34,7 +34,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const navItems: Array<{ href: string; label: string; live: boolean }> = [
     { href: "/admin", label: "Dashboard", live: true },
     { href: "/admin/orders", label: "Orders", live: true },
-    { href: "/admin/products", label: "Products", live: false },
+    { href: "/admin/products", label: "Products", live: true },
     { href: "/admin/collections", label: "Collections", live: false },
     { href: "/admin/coupons", label: "Coupons", live: false },
     { href: "/admin/reviews", label: "Reviews", live: false },
