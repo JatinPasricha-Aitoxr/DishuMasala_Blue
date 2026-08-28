@@ -23,6 +23,9 @@
     "migrate-spices-banner": "tsx --env-file-if-exists=.env scripts/migrate-spices-banner.ts",
     "migrate-classic-tea-banner": "tsx --env-file-if-exists=.env scripts/migrate-classic-tea-banner.ts",
     "migrate-combos-page-banner": "tsx --env-file-if-exists=.env scripts/migrate-combos-page-banner.ts",
+    "migrate-blue-tea-page-banner": "tsx --env-file-if-exists=.env scripts/migrate-blue-tea-page-banner.ts",
+    "migrate-red-tea-page-banner": "tsx --env-file-if-exists=.env scripts/migrate-red-tea-page-banner.ts",
+    "migrate-classic-teas-page-banner": "tsx --env-file-if-exists=.env scripts/migrate-classic-teas-page-banner.ts",
     "migrate-homepage-banners": "tsx --env-file-if-exists=.env scripts/migrate-homepage-banners.ts",
     "create-staff-user": "tsx --env-file-if-exists=.env scripts/create-staff-user.ts",
     "seed-perf-orders": "tsx --env-file-if-exists=.env scripts/seed-perf-orders.ts"

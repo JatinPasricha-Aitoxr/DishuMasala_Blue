@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductGrid } from "@/components/shop/ProductGrid";
 import { PromoBannerSlider } from "@/components/hero/PromoBannerSlider";
@@ -142,17 +141,7 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
             No products are published in this collection yet.
           </p>
         ) : (
-          <>
-            <ProductGrid products={products} />
-            <div className="mt-10 text-center">
-              <Link
-                href={`/shop/?collection=${collection.slug}`}
-                className="text-sm font-semibold text-brew-2 underline underline-offset-4"
-              >
-                Filter and sort this collection in Shop
-              </Link>
-            </div>
-          </>
+          <ProductGrid products={products} />
         )}
       </div>
 
