@@ -124,7 +124,7 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
   return (
     <div>
       {pageBanner.length > 0 && (
-        <PromoBannerSlider banners={pageBanner} ariaLabel={`${collection.title} promotions`} />
+        <PromoBannerSlider banners={pageBanner} ariaLabel={`${collection.title} promotions`} fullBleed />
       )}
       <CollectionHeader
         title={collection.title}

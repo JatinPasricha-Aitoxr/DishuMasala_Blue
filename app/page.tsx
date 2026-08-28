@@ -80,7 +80,7 @@ export default async function Home() {
 
   return (
     <>
-      <PromoBannerSlider banners={banners} />
+      <PromoBannerSlider banners={banners} fullBleed />
       <TrustStrip />
       <ScrollColorBand fromVar="--color-brew-2" viaVar="--color-brew-5" toVar="--color-hibiscus" className="w-full">
         <BlueTeaBand products={blueTea} />
