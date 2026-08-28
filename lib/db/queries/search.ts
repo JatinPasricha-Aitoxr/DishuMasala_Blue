@@ -3,8 +3,9 @@ import "server-only";
 import { and, eq, sql } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 import { db } from "../index";
-import { collections, products, variants } from "../schema";
+import { collections, productImages, products, variants } from "../schema";
 import { paise } from "@/lib/money";
+import { publicUrl } from "@/lib/storage/r2";
 import type { ProductCardData } from "@/types/catalog";
 
 /**
@@ -62,6 +63,22 @@ async function fetchSearchProducts(q: string): Promise<ProductCardData[]> {
         ) filter (where ${variants.id} is not null),
         '[]'
       )`,
+      // See lib/db/queries/shop.ts's identical subquery for why this is a correlated subquery
+      // rather than a second left-join (would cross-multiply against the variants join above).
+      imagesJson: sql<ImageJsonRow[]>`coalesce(
+        (
+          select json_agg(
+            json_build_object(
+              'r2Key', ${productImages.r2Key}, 'alt', ${productImages.alt},
+              'width', ${productImages.width}, 'height', ${productImages.height}
+            )
+            order by ${productImages.isPrimary} desc, ${productImages.position}
+          )
+          from ${productImages}
+          where ${productImages.productId} = ${products.id}
+        ),
+        '[]'
+      )`,
     })
     .from(products)
     .innerJoin(collections, eq(products.collectionId, collections.id))
@@ -101,6 +118,7 @@ async function fetchSearchProducts(q: string): Promise<ProductCardData[]> {
     createdAt: r.createdAt,
     updatedAt: r.updatedAt,
     variants: r.variantsJson.map((v) => ({ ...v, mrpPaise: paise(v.mrpPaise), pricePaise: paise(v.pricePaise) })),
+    images: r.imagesJson.map((img) => ({ url: publicUrl(img.r2Key), alt: img.alt, width: img.width, height: img.height })),
   }));
 }
 
@@ -115,4 +133,11 @@ interface VariantJsonRow {
   inStock: boolean;
   stockQty: number | null;
   position: number;
+}
+
+interface ImageJsonRow {
+  r2Key: string;
+  alt: string;
+  width: number;
+  height: number;
 }

@@ -34,9 +34,15 @@ export function CartUpsellsList({ candidates }: { candidates: ProductCardData[] 
         {eligible.map((product) => {
           const variant = product.variants[0];
           if (!variant) return null;
+          const image = product.images[0];
           return (
             <div key={product.id} className="flex flex-col gap-2 rounded-md border border-line bg-surface p-3">
-              <Placeholder slot="product-packshot-generic" className="rounded-sm" />
+              {image ? (
+                // eslint-disable-next-line @next/next/no-img-element -- small fixed-size thumbnail, not worth next/image's overhead here.
+                <img src={image.url} alt={image.alt} className="aspect-square w-full rounded-sm object-cover" />
+              ) : (
+                <Placeholder slot="product-packshot-generic" className="rounded-sm" />
+              )}
               <p className="text-sm font-semibold text-ink">{product.name}</p>
               <PriceBlock mrpPaise={paise(variant.mrpPaise)} pricePaise={paise(variant.pricePaise)} showTaxNote={false} />
               <Button
@@ -55,7 +61,7 @@ export function CartUpsellsList({ candidates }: { candidates: ProductCardData[] 
                     sku: variant.sku,
                     mrpPaise: variant.mrpPaise,
                     unitPricePaise: variant.pricePaise,
-                    imageR2Key: null,
+                    imageUrl: image?.url ?? null,
                   })
                 }
               >

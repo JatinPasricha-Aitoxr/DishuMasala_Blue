@@ -82,6 +82,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
     })
     .filter((s): s is GallerySlide => s != null);
 
+  const primaryImageKey = product.images.find((img) => img.isPrimary)?.r2Key ?? product.images[0]?.r2Key;
+  const primaryImageUrl = primaryImageKey ? safeImageUrl(primaryImageKey) : null;
+
   const hasApprovedReviews = reviewSummary.count > 0;
 
   const productJsonLd: Record<string, unknown> = {
@@ -163,7 +166,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             optionLabel={product.optionLabel}
             variants={product.variants}
             priority={product.priority}
-            primaryImageR2Key={product.images.find((img) => img.isPrimary)?.r2Key ?? product.images[0]?.r2Key ?? null}
+            primaryImageUrl={primaryImageUrl}
             reviewCount={reviewSummary.count}
             reviewAverage={reviewSummary.average}
           />

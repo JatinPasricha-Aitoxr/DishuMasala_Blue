@@ -14,7 +14,7 @@ export interface PdpInteractiveProps {
   optionLabel: string;
   variants: Variant[];
   priority: number;
-  primaryImageR2Key: string | null;
+  primaryImageUrl: string | null;
   reviewCount: number;
   reviewAverage: number;
 }
@@ -32,7 +32,7 @@ export function PdpInteractive({
   optionLabel,
   variants,
   priority,
-  primaryImageR2Key,
+  primaryImageUrl,
   reviewCount,
   reviewAverage,
 }: PdpInteractiveProps) {
@@ -57,7 +57,7 @@ export function PdpInteractive({
       sku: variant.sku,
       mrpPaise: variant.mrpPaise,
       unitPricePaise: variant.pricePaise,
-      imageR2Key: primaryImageR2Key,
+      imageUrl: primaryImageUrl,
     });
   };
 

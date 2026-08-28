@@ -77,12 +77,23 @@ export interface ProductWithVariants extends Product {
   images: ProductImage[];
 }
 
+/** A product image resolved to a real, absolute URL — the shape every card/thumbnail consumer
+ * actually needs to render an `<img>`/`<Image>`, as opposed to `ProductImage`'s raw `r2Key` (which
+ * only a server-only module may resolve via `publicUrl`, CLAUDE.md §3.3). */
+export interface ProductThumbnail {
+  url: string;
+  alt: string;
+  width: number;
+  height: number;
+}
+
 /** A product with its variants plus its parent collection's slug/title denormalised alongside it —
  * exactly the shape the homepage sections (components/sections/*) and ProductCard need, without any
- * of them touching lib/db themselves. Images are omitted (always empty pre-migration today; see
- * scripts/migrate-images.ts) rather than modelled as an empty array on every caller. */
+ * of them touching lib/db themselves. `images` is ordered position-first (primary first) and empty
+ * for a product with none migrated yet, never omitted. */
 export interface ProductCardData extends Product {
   variants: Variant[];
   collectionSlug: string;
   collectionTitle: string;
+  images: ProductThumbnail[];
 }

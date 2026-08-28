@@ -3,8 +3,9 @@ import "server-only";
 import { and, asc, eq, exists, sql } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 import { db } from "../index";
-import { collections, products, variants } from "../schema";
+import { collections, productImages, products, variants } from "../schema";
 import { paise } from "@/lib/money";
+import { publicUrl } from "@/lib/storage/r2";
 import type { ProductCardData } from "@/types/catalog";
 import {
   buildShopOrderBy,
@@ -82,6 +83,23 @@ async function fetchShopPage(filters: ShopFilters): Promise<ShopPage> {
         ) filter (where ${variants.id} is not null),
         '[]'
       )`,
+      // A correlated subquery, not a second left-join — joining product_images alongside the
+      // variants left-join above would cross-multiply rows (one per variant × image pair) and
+      // corrupt the variants json_agg too. Ordered primary-first, then by position.
+      imagesJson: sql<ImageJsonRow[]>`coalesce(
+        (
+          select json_agg(
+            json_build_object(
+              'r2Key', ${productImages.r2Key}, 'alt', ${productImages.alt},
+              'width', ${productImages.width}, 'height', ${productImages.height}
+            )
+            order by ${productImages.isPrimary} desc, ${productImages.position}
+          )
+          from ${productImages}
+          where ${productImages.productId} = ${products.id}
+        ),
+        '[]'
+      )`,
       totalCount: sql<number>`count(*) over()`,
     })
     .from(products)
@@ -119,6 +137,7 @@ async function fetchShopPage(filters: ShopFilters): Promise<ShopPage> {
       mrpPaise: paise(v.mrpPaise),
       pricePaise: paise(v.pricePaise),
     })),
+    images: r.imagesJson.map((img) => ({ url: publicUrl(img.r2Key), alt: img.alt, width: img.width, height: img.height })),
   }));
 
   return {
@@ -140,6 +159,13 @@ interface VariantJsonRow {
   inStock: boolean;
   stockQty: number | null;
   position: number;
+}
+
+interface ImageJsonRow {
+  r2Key: string;
+  alt: string;
+  width: number;
+  height: number;
 }
 
 export interface ShopFacets {

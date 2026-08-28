@@ -1,12 +1,13 @@
 import "server-only";
 
-import { and, asc, eq, ne } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 import { db } from "../index";
 import { collections, productImages, products, variants } from "../schema";
 import { paise } from "@/lib/money";
+import { publicUrl } from "@/lib/storage/r2";
 import type { ProductWithVariants } from "@/types/catalog";
-import type { ProductCardData } from "@/types/catalog";
+import type { ProductCardData, ProductThumbnail } from "@/types/catalog";
 
 /** Every published product's slug — `app/product/[slug]/page.tsx`'s `generateStaticParams`
  * (Phase 4), same "published" filter Phase 3 established for the shop/collections listings. */
@@ -136,7 +137,7 @@ async function fetchRelatedProducts(excludeProductId: number, limit: number): Pr
       // below, not on the product object itself.
       const { variant, ...rest } = r;
       void variant;
-      product = { ...rest, variants: [] };
+      product = { ...rest, variants: [], images: [] };
       byId.set(r.id, product);
     }
     if (r.variant && r.variant.id != null) {
@@ -144,5 +145,27 @@ async function fetchRelatedProducts(excludeProductId: number, limit: number): Pr
     }
   }
 
-  return topIds.map((r) => byId.get(r.id)).filter((p): p is ProductCardData => p != null);
+  const productsOut = topIds.map((r) => byId.get(r.id)).filter((p): p is ProductCardData => p != null);
+
+  // A second, small query rather than a join — see products.ts's attachImages for why joining
+  // product_images alongside the variants left-join above would corrupt both aggregated lists.
+  if (productsOut.length > 0) {
+    const imageRows = await db
+      .select()
+      .from(productImages)
+      .where(inArray(productImages.productId, productsOut.map((p) => p.id)))
+      .orderBy(desc(productImages.isPrimary), asc(productImages.position));
+
+    const imagesByProductId = new Map<number, ProductThumbnail[]>();
+    for (const img of imageRows) {
+      const list = imagesByProductId.get(img.productId) ?? [];
+      list.push({ url: publicUrl(img.r2Key), alt: img.alt, width: img.width, height: img.height });
+      imagesByProductId.set(img.productId, list);
+    }
+    for (const product of productsOut) {
+      product.images = imagesByProductId.get(product.id) ?? [];
+    }
+  }
+
+  return productsOut;
 }

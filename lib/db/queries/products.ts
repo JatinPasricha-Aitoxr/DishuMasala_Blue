@@ -1,11 +1,12 @@
 import "server-only";
 
 import { unstable_cache } from "next/cache";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { db } from "../index";
-import { collections, products, variants } from "../schema";
+import { collections, productImages, products, variants } from "../schema";
 import { paise } from "@/lib/money";
-import type { ProductCardData } from "@/types/catalog";
+import { publicUrl } from "@/lib/storage/r2";
+import type { ProductCardData, ProductThumbnail } from "@/types/catalog";
 
 /**
  * Published products in one collection, each with its full variant list (ordered by position) and
@@ -92,6 +93,7 @@ async function fetchPublishedProductsByCollectionSlug(slug: string): Promise<Pro
         createdAt: r.createdAt,
         updatedAt: r.updatedAt,
         variants: [],
+        images: [],
       };
       bySlug.set(r.slug, product);
     }
@@ -104,5 +106,34 @@ async function fetchPublishedProductsByCollectionSlug(slug: string): Promise<Pro
     }
   }
 
+  await attachImages(Array.from(bySlug.values()));
   return Array.from(bySlug.values());
+}
+
+/**
+ * Attaches each product's real migrated images (products.map((p) => p.images), mutated in place) —
+ * a second, small query rather than a join, since joining product_images alongside the variants
+ * left-join above would cross-multiply rows (one row per variant × image pair) and corrupt both
+ * lists once re-grouped. Every ProductCardData producer in lib/db/queries/* attaches images this
+ * same way (see product-detail.ts's getRelatedProducts) so cards actually show the real photo the
+ * PDP already has, instead of always falling back to the generic placeholder.
+ */
+async function attachImages(productsOut: ProductCardData[]): Promise<void> {
+  if (productsOut.length === 0) return;
+  const ids = productsOut.map((p) => p.id);
+  const imageRows = await db
+    .select()
+    .from(productImages)
+    .where(inArray(productImages.productId, ids))
+    .orderBy(desc(productImages.isPrimary), asc(productImages.position));
+
+  const byProductId = new Map<number, ProductThumbnail[]>();
+  for (const img of imageRows) {
+    const list = byProductId.get(img.productId) ?? [];
+    list.push({ url: publicUrl(img.r2Key), alt: img.alt, width: img.width, height: img.height });
+    byProductId.set(img.productId, list);
+  }
+  for (const product of productsOut) {
+    product.images = byProductId.get(product.id) ?? [];
+  }
 }

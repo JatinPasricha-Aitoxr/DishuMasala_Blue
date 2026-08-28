@@ -25,5 +25,12 @@ export function toProductCardProps(product: ProductCardData): ProductCardProps {
     // (e.g. mid-edit in the admin, later phases) must still render a card rather than throw.
     mrpPaise: primary?.mrpPaise ?? paise(0),
     pricePaise: primary?.pricePaise ?? paise(0),
+    images: product.images,
+    priority: product.priority,
+    // Undefined (not a fake variant) when the product genuinely has none yet — ProductCard
+    // disables Quick Add rather than adding a variant that doesn't exist.
+    primaryVariant: primary
+      ? { id: primary.id, sku: primary.sku, optionValue: primary.optionValue, inStock: primary.inStock }
+      : undefined,
   };
 }

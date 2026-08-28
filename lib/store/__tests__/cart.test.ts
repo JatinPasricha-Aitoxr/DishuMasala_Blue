@@ -24,7 +24,7 @@ function line(overrides: Partial<CartLine> = {}): CartLine {
     sku: "BT-500",
     mrpPaise: 60000,
     unitPricePaise: 50000,
-    imageR2Key: null,
+    imageUrl: null,
     ...overrides,
   };
 }

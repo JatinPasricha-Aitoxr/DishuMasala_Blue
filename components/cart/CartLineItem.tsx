@@ -6,9 +6,10 @@ import { formatINR, paise } from "@/lib/money";
 import { useCartStore, type CartLine } from "@/lib/store/cart";
 
 /** One cart line — image, name, option, quantity control, remove, line total (PROMPTS.md Phase 5
- * item 2). Real migrated product photography isn't wired up yet in this dev environment (Phase 0's
- * R2 migration needs real credentials this environment doesn't have), so every line uses the same
- * generic placeholder slot the rest of the storefront falls back to. */
+ * item 2). `line.imageUrl` is only ever set by the component that added the line (the PDP's "Add
+ * to cart" and every card's "Quick add" — both now resolve a real R2 image URL server-side before
+ * it reaches this client state); falls back to the generic placeholder for older/partial lines
+ * that never got one (e.g. AccountSync's guest-cart-merge stub, before its own revalidate resolves). */
 export function CartLineItem({ line }: { line: CartLine }) {
   const updateQty = useCartStore((s) => s.updateQty);
   const removeItem = useCartStore((s) => s.removeItem);
@@ -16,7 +17,12 @@ export function CartLineItem({ line }: { line: CartLine }) {
   return (
     <li className="flex gap-4 border-b border-line py-4 last:border-0">
       <div className="w-20 shrink-0">
-        <Placeholder slot="product-packshot-generic" className="rounded-sm" />
+        {line.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- small fixed-size thumbnail, not worth next/image's overhead here.
+          <img src={line.imageUrl} alt="" className="aspect-square w-full rounded-sm object-cover" />
+        ) : (
+          <Placeholder slot="product-packshot-generic" className="rounded-sm" />
+        )}
       </div>
       <div className="flex flex-1 flex-col gap-1.5">
         <div className="flex items-start justify-between gap-2">

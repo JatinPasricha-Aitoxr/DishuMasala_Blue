@@ -6,6 +6,7 @@ import { Rating } from "@/components/ui/Rating";
 import { Placeholder } from "@/components/media/Placeholder";
 import { familyAccentVar, resolveFamilyAccent } from "@/lib/family-accent";
 import { useWishlistToggle } from "@/lib/hooks/useWishlistToggle";
+import { useCartStore } from "@/lib/store/cart";
 import { cn } from "@/lib/cn";
 import type { Paise } from "@/lib/money";
 
@@ -36,10 +37,22 @@ export interface ProductCardProps {
   /** 0, 1, or 2+ images, in position order, primary first. Degrades gracefully at every count —
    * roughly half the seeded catalogue is single-image, single-variant. */
   images?: ProductCardImage[];
+  /** The product's own `priority` (CLAUDE.md §7.2) — required for real cards (lib/product-card.ts
+   * always sets it) so Quick Add can carry it into the cart line the same way the PDP does; the
+   * /design-system showcase's synthetic examples pass a placeholder value since they have no real
+   * cart line to add. */
+  priority: number;
+  /** The variant Quick Add actually adds — the product's own position-0 variant, matching
+   * lib/product-card.ts's `mrpPaise`/`pricePaise`. Undefined when the product has no variant yet
+   * (mid-edit in the admin) or for /design-system's synthetic examples; Quick Add disables itself
+   * in that case rather than adding a variant that doesn't exist. */
+  primaryVariant?: { id: number; sku: string; optionValue: string; inStock: boolean };
   /** Omit entirely (not 0) when there is no review data yet — there are no reviews at launch. */
   rating?: { value: number; count: number };
   wishlisted?: boolean;
   onToggleWishlist?: () => void;
+  /** Overrides the real add-to-cart behaviour below — only used by /design-system's synthetic
+   * examples, which have no real `primaryVariant` to add. */
   onQuickAdd?: () => void;
   className?: string;
 }
@@ -56,6 +69,8 @@ export function ProductCard({
   mrpPaise,
   pricePaise,
   images = [],
+  priority,
+  primaryVariant,
   rating,
   wishlisted,
   onToggleWishlist,
@@ -71,6 +86,7 @@ export function ProductCard({
   const accent = familyAccentVar(resolveFamilyAccent(collectionSlug, tags));
   const [primary, secondary] = images;
   const href = `/product/${slug}/`;
+  const addItem = useCartStore((s) => s.addItem);
 
   const toggleWishlist = () => {
     if (onToggleWishlist) {
@@ -78,6 +94,30 @@ export function ProductCard({
     } else {
       real.toggle();
     }
+  };
+
+  // Real add-to-cart (same lib/store/cart.ts action the PDP's "Add to cart" uses, which also
+  // opens the cart drawer for feedback) — every card on the homepage/shop/carousels used to render
+  // a "Quick add" button with no `onQuickAdd` ever wired up anywhere, so clicking it did nothing.
+  const canQuickAdd = onQuickAdd != null || (primaryVariant != null && productId != null && primaryVariant.inStock);
+  const quickAdd = () => {
+    if (onQuickAdd) {
+      onQuickAdd();
+      return;
+    }
+    if (!primaryVariant || productId == null) return;
+    void addItem({
+      variantId: primaryVariant.id,
+      productId,
+      priority,
+      qty: 1,
+      productName: name,
+      optionValue: primaryVariant.optionValue,
+      sku: primaryVariant.sku,
+      mrpPaise,
+      unitPricePaise: pricePaise,
+      imageUrl: primary?.url ?? null,
+    });
   };
 
   return (
@@ -174,10 +214,11 @@ export function ProductCard({
 
         <button
           type="button"
-          onClick={onQuickAdd}
-          className="relative z-20 mt-2 h-10 w-full rounded-md border border-ink text-sm font-semibold text-ink transition-colors duration-[180ms] hover:bg-ink hover:text-surface"
+          onClick={quickAdd}
+          disabled={!canQuickAdd}
+          className="relative z-20 mt-2 h-10 w-full rounded-md border border-ink text-sm font-semibold text-ink transition-colors duration-[180ms] hover:bg-ink hover:text-surface disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-ink"
         >
-          Quick add
+          {primaryVariant && !primaryVariant.inStock ? "Out of stock" : "Quick add"}
         </button>
       </div>
     </article>

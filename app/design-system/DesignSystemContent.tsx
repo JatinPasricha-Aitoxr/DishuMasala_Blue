@@ -457,6 +457,7 @@ export function DesignSystemContent({ trustStrip }: DesignSystemContentProps) {
             optionValues={["20 pk"]}
             mrpPaise={toPaise(349)}
             pricePaise={toPaise(299)}
+            priority={1}
             rating={{ value: 4.6, count: 42 }}
           />
           <ProductCard
@@ -468,6 +469,7 @@ export function DesignSystemContent({ trustStrip }: DesignSystemContentProps) {
             optionValues={["250g"]}
             mrpPaise={toPaise(199)}
             pricePaise={toPaise(199)}
+            priority={3}
           />
           <ProductCard
             slug="turmeric-powder-haldi-powder"
@@ -479,6 +481,7 @@ export function DesignSystemContent({ trustStrip }: DesignSystemContentProps) {
             optionValues={["100g", "250g"]}
             mrpPaise={toPaise(149)}
             pricePaise={toPaise(119)}
+            priority={5}
           />
         </div>
         <p className="mt-4 text-sm text-ink-2">

@@ -77,7 +77,7 @@ export function AccountSync() {
                 sku: "",
                 mrpPaise: 0,
                 unitPricePaise: 0,
-                imageR2Key: null,
+                imageUrl: null,
               }
             );
           });
