@@ -294,6 +294,19 @@ export const useCartStore = create<CartState>()(
         removeItem: (name) => safeStorage.removeItem(name),
       },
       partialize: (state) => ({ lines: state.lines, couponCode: state.couponCode }),
+      // `pricing` is deliberately excluded from `partialize` above — it's never trusted stale
+      // (CLAUDE.md §7.5). But nothing else ever re-fetched it on a fresh page load: every mutation
+      // (addItem/updateQty/...) calls revalidate() itself, so the bug only shows up when a cart
+      // that already has items is loaded from scratch — a hard refresh of /cart, a direct link to
+      // /checkout, or just opening the site in a new tab. `pricing` then stays null forever and
+      // every consumer (OrderSummary, the free-shipping bar, checkout's total) is stuck with
+      // nothing to render. Revalidate once, right after localStorage's lines rehydrate, rather than
+      // duplicating this same on-mount check in every component that reads `pricing`.
+      onRehydrateStorage: () => (state) => {
+        if (state && state.lines.length > 0) {
+          void state.revalidate();
+        }
+      },
     },
   ),
 );
