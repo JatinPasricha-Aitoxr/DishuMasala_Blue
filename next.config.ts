@@ -27,9 +27,18 @@ function r2RemotePattern(): NonNullable<NextConfig["images"]>["remotePatterns"] 
 }
 
 const nextConfig: NextConfig = {
-  // Keep the app deployable on Vercel while staying runnable under PM2 + Nginx on a VPS —
-  // no Vercel-only API is used anywhere in this codebase (CLAUDE.md §2, §10).
-  output: "standalone",
+  // `output: "standalone"` is for self-hosting (PM2 + Nginx on a VPS, CLAUDE.md §10) — it makes
+  // `next build` emit its own bundled server + pruned node_modules under `.next/standalone`, so
+  // that folder alone is enough to run without a full `pnpm install` on the target machine.
+  // Vercel's own build pipeline has a separate post-build packaging step (its own Node File Trace
+  // pass) that expects the *normal* `.next` layout instead; enabling standalone output at the same
+  // time makes Vercel's own step fail with `ENOENT .../next-server.js.nft.json` even though
+  // `next build` itself succeeds — a well-documented Next.js/Vercel conflict, not specific to this
+  // app. Vercel already produces its own optimized serverless output regardless of this flag, so
+  // only turn standalone on when NOT building on Vercel (which always sets `VERCEL=1`) — this
+  // keeps both deploy targets working with the one config, per CLAUDE.md §2/§10's "must stay
+  // runnable under PM2 + Nginx" requirement.
+  output: process.env.VERCEL ? undefined : "standalone",
   // Next.js otherwise auto-appends a "read node_modules/next/dist/docs/" block to CLAUDE.md on
   // every `next dev`/build — CLAUDE.md is this project's own binding constitution, authored and
   // version-controlled deliberately, not a place for a tool to write into.
